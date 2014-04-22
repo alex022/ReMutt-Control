@@ -29,7 +29,7 @@ all: ReMutt_Control_Code.axf
 ReMutt_Control_Code.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"X:\rmc\CMSIS_CORE_LPC177x_8x\Debug" -L"X:\rmc\CMSIS_DSPLIB_CM3\lib" -Xlinker -Map="ReMutt_Control_Code.map" -Xlinker --gc-sections -mcpu=cortex-m3 -mthumb -T "ReMutt_Control_Code_Debug.ld" -o "ReMutt_Control_Code.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"X:\189\Remutt_Code\CMSIS_CORE_LPC177x_8x\Debug" -L"X:\189\Remutt_Code\CMSIS_DSPLIB_CM3\lib" -Xlinker -Map="ReMutt_Control_Code.map" -Xlinker --gc-sections -mcpu=cortex-m3 -mthumb -T "ReMutt_Control_Code_Debug.ld" -o "ReMutt_Control_Code.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

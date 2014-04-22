@@ -31,10 +31,9 @@ typedef unsigned short  uint16;
 typedef signed int     int32;
 typedef unsigned int   uint32;
 
-typedef enum {
-	FALSE = 0,
-	TRUE = !FALSE
-}bool;
+
+#define	FALSE 	0
+#define	TRUE 	1
 
 /******************************************************************************
 * END OF FILE
