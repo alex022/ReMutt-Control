@@ -10,8 +10,6 @@
 ==============================================================================*/
 
 #include "fsr_circuit.h"
-#include "typedef.h"
-#include <stdio.h>
 
 /*==============================================================================
  Global function definitions
@@ -20,7 +18,7 @@
 /*------------------------------------------------------------------------------
  function name:		initFSR
  description: 		initializes the gpios for the load sensor circuits
- parameters:		desired voltage, stop bit, parity
+ parameters:		none
  returned value:	none
 ------------------------------------------------------------------------------*/
 void initFSR()
@@ -62,7 +60,7 @@ void initFSR()
  function name:		setDCPVoltage
  description: 		set the digitally controlled potentiometer for a given load
  	 	 	 	 	 signal to a desired voltage
- parameters:		desired voltage, stop bit, parity
+ parameters:		desired voltage, DCP signal select
  returned value:	none
 ------------------------------------------------------------------------------
 void setDCPVoltage (int voltage, uint8 signal)
