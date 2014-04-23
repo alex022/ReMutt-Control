@@ -41,6 +41,20 @@
 #define FOOD_FULL_CS_PORT		PORT5
 #define FOOD_FULL_CS_PIN		2
 
+#define WATER_FULL_INC_PORT		PORT3
+#define WATER_FULL_INC_PIN		21
+#define WATER_FULL_UD_PORT		PORT3
+#define WATER_FULL_UD_PIN		22
+#define WATER_FULL_CS_PORT		PORT3
+#define WATER_FULL_CS_PIN		23
+
+#define WATER_EMPTY_INC_PORT	PORT3
+#define WATER_EMPTY_INC_PIN		18
+#define WATER_EMPTY_UD_PORT		PORT3
+#define WATER_EMPTY_UD_PIN		19
+#define WATER_EMPTY_CS_PORT		PORT3
+#define WATER_EMPTY_CS_PIN		20
+
 //TODO: Water full and water empty control signals
 
 /*==============================================================================

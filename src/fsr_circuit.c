@@ -11,6 +11,8 @@
 
 #include "fsr_circuit.h"
 #include "typedef.h"
+#include <stdio.h>
+
 /*==============================================================================
  Global function definitions
 ==============================================================================*/
@@ -33,14 +35,27 @@ void initFSR()
 	GPIOSetDir(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, GPIO_OUTPUT);
 	GPIOSetDir(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, GPIO_OUTPUT);
 
-	//TODO: set water full and water empty control signals to outputs
+	GPIOSetDir(WATER_FULL_CS_PORT, WATER_FULL_CS_PIN, GPIO_OUTPUT);
+	GPIOSetDir(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, GPIO_OUTPUT);
+	GPIOSetDir(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, GPIO_OUTPUT);
+
+	GPIOSetDir(WATER_EMPTY_CS_PORT, WATER_EMPTY_CS_PIN, GPIO_OUTPUT);
+	GPIOSetDir(WATER_EMPTY_INC_PORT, WATER_EMPTY_INC_PIN, GPIO_OUTPUT);
+	GPIOSetDir(WATER_EMPTY_UD_PORT, WATER_EMPTY_UD_PIN, GPIO_OUTPUT);
 
 	//Set initial control signal values
 	GPIOSetValue(FOOD_FULL_CS_PORT, FOOD_FULL_CS_PIN, 1);
 	GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
 	GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 1);
 
-	//TODO: set water full and water empty initial control signal values
+	GPIOSetValue(WATER_FULL_CS_PORT, WATER_FULL_CS_PIN, 1);
+	GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
+	GPIOSetValue(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, 1);
+
+	GPIOSetValue(WATER_EMPTY_CS_PORT, WATER_EMPTY_CS_PIN, 1);
+	GPIOSetValue(WATER_EMPTY_INC_PORT, WATER_EMPTY_INC_PIN, 1);
+	GPIOSetValue(WATER_EMPTY_UD_PORT, WATER_EMPTY_UD_PIN, 1);
+
 }
 
 /*------------------------------------------------------------------------------
@@ -49,7 +64,7 @@ void initFSR()
  	 	 	 	 	 signal to a desired voltage
  parameters:		desired voltage, stop bit, parity
  returned value:	none
-------------------------------------------------------------------------------*/
+------------------------------------------------------------------------------
 void setDCPVoltage (int voltage, uint8 signal)
 {
 	int i = voltage;
@@ -72,4 +87,76 @@ void setDCPVoltage (int voltage, uint8 signal)
 		}
 		i--;
 	}
+}
+*/
+
+/*------------------------------------------------------------------------------
+ function name:		promptIncrementDCP
+ description: 		prompts the user if they wish to increment/decrement
+ 	 	 	 	 	 specified DCP
+ parameters:		DCP to increment
+ returned value:	number of increments (negative = number of decrements)
+------------------------------------------------------------------------------*/
+int32 promptIncrementDCP(uint8 dcp)
+{
+	int32 increments = 0;
+	uint8 input;
+	do
+	{
+		printf("Increment Up(u) or Down(d) or Quit(q)?");
+		scanf("%c", &input);
+		printf(" %c\n\r", input);
+		if (input == 'd' || input == 'D' || input == 'u' || input == 'U')
+		{
+			if (input == 'd' || input == 'D')
+			{
+				switch(dcp)
+				{
+					case WATER_FULL:
+						GPIOSetValue(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, 0);
+						break;
+					case WATER_EMPTY:
+						GPIOSetValue(WATER_EMPTY_UD_PORT, WATER_EMPTY_UD_PORT, 0);
+						break;
+					case FOOD_FULL:
+						GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 0);
+						break;
+				}
+				increments--;
+			}
+			else
+			{
+				switch(dcp)
+				{
+					case WATER_FULL:
+						GPIOSetValue(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, 1);
+						break;
+					case WATER_EMPTY:
+						GPIOSetValue(WATER_EMPTY_UD_PORT, WATER_EMPTY_UD_PORT, 1);
+						break;
+					case FOOD_FULL:
+						GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 1);
+						break;
+				}
+				increments++;
+			}
+			switch(dcp)
+			{
+				case WATER_FULL:
+					GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 0);
+					GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
+					break;
+				case WATER_EMPTY:
+					GPIOSetValue(WATER_EMPTY_INC_PORT, WATER_EMPTY_INC_PORT, 0);
+					GPIOSetValue(WATER_EMPTY_INC_PORT, WATER_EMPTY_INC_PORT, 1);
+					break;
+				case FOOD_FULL:
+					GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 0);
+					GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
+					break;
+			}
+		}
+	}while(input == 'd' || input == 'D' || input == 'u' || input == 'U');
+
+	return increments;
 }
