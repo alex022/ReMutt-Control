@@ -65,6 +65,15 @@ void initFSR();
  parameters:		desired voltage, stop bit, parity
  returned value:	none
 ------------------------------------------------------------------------------*/
-void setDCPVoltage (int voltage, uint8 signal);
+//void setDCPVoltage (int voltage, uint8 signal);
+
+/*------------------------------------------------------------------------------
+ function name:		promptIncrementDCP
+ description: 		prompts the user if they wish to increment/decrement
+ 	 	 	 	 	 specified DCP
+ parameters:		DCP to increment
+ returned value:	number of increments (negative = number of decrements)
+------------------------------------------------------------------------------*/
+int32 promptIncrementDCP(uint8 dcp);
 
 #endif /* FSR_CIRCUIT_H_ */
