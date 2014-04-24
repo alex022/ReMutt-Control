@@ -104,16 +104,17 @@ int32 promptStep()
 
 /*------------------------------------------------------------------------------
  function name:		setFullStep
- description: 		spins stepper until prompted to stop
- parameters:		none
- returned value:	number of steps
+ description: 		spins stepper for 1000 steps
+ parameters:		number of steps to spin
+ returned value:	none
 ------------------------------------------------------------------------------*/
-void spinStepper()
+void spinStepper(uint32 total_steps)
 {
-	int i = 0;
-	int step = 0;
+	uint8 i = 0;
+	uint8 step = 0;
+	uint32 j = 0;
 
-	while(1)
+	while(j < total_steps)
 	{
 		for(i = 0; i < 100; i++)
 		{
@@ -124,6 +125,7 @@ void spinStepper()
 
 		if (step == 4)
 			step = 0;
+		j++;
 	}
 }
 

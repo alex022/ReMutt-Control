@@ -65,9 +65,9 @@ int32 promptStep();
 /*------------------------------------------------------------------------------
  function name:		setFullStep
  description: 		spins stepper forever
- parameters:		none
+ parameters:		number of steps to spin
  returned value:	none
 ------------------------------------------------------------------------------*/
-void spinStepper();
+void spinStepper(uint32 total_steps);
 
 #endif /* STEPPER_MOTOR_H_ */

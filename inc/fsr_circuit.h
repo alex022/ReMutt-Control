@@ -79,7 +79,7 @@ void initFSR();
  	 	 	 	 	 signal to a desired voltage
  parameters:		desired voltage, DCP signal select
  returned value:	none
-------------------------------------------------------------------------------
+------------------------------------------------------------------------------*/
 //void setDCPVoltage (int voltage, uint8 signal);
 
 /*------------------------------------------------------------------------------
@@ -90,5 +90,13 @@ void initFSR();
  returned value:	number of increments (negative = number of decrements)
 ------------------------------------------------------------------------------*/
 int32 promptIncrementDCP(uint8 dcp);
+
+/*------------------------------------------------------------------------------
+ function name:		getLoadSignal
+ description: 		get the specified load signal
+ parameters:		which signal (FOOD_FULL/WATER_FULL/WATER_EMPTY)
+ returned value:	gpio value
+------------------------------------------------------------------------------*/
+uint8 getLoadSignal(uint8 dcp);
 
 #endif /* FSR_CIRCUIT_H_ */

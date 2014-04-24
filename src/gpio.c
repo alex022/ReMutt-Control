@@ -102,40 +102,40 @@ GPIOSetDir(uint32_t portNum, uint32_t bitPosi, uint32_t dir)
   switch (portNum)
     {
   case PORT0:
-    if (!(LPC_GPIO0 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-      LPC_GPIO0 ->DIR |= (0x1 << bitPosi);
-    else if ((LPC_GPIO0 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-      LPC_GPIO0 ->DIR &= ~(0x1 << bitPosi);
+    if (!(LPC_GPIO0->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+      LPC_GPIO0->DIR |= (0x1 << bitPosi);
+    else if ((LPC_GPIO0->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+      LPC_GPIO0->DIR &= ~(0x1 << bitPosi);
     break;
   case PORT1:
-    if (!(LPC_GPIO1 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-      LPC_GPIO1 ->DIR |= (0x1 << bitPosi);
-    else if ((LPC_GPIO1 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-      LPC_GPIO1 ->DIR &= ~(0x1 << bitPosi);
+    if (!(LPC_GPIO1->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+      LPC_GPIO1->DIR |= (0x1 << bitPosi);
+    else if ((LPC_GPIO1->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+      LPC_GPIO1->DIR &= ~(0x1 << bitPosi);
     break;
   case PORT2:
-    if (!(LPC_GPIO2 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-      LPC_GPIO2 ->DIR |= (0x1 << bitPosi);
-    else if ((LPC_GPIO2 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-      LPC_GPIO2 ->DIR &= ~(0x1 << bitPosi);
+    if (!(LPC_GPIO2->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+      LPC_GPIO2->DIR |= (0x1 << bitPosi);
+    else if ((LPC_GPIO2->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+      LPC_GPIO2->DIR &= ~(0x1 << bitPosi);
     break;
   case PORT3:
-    if (!(LPC_GPIO3 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-      LPC_GPIO3 ->DIR |= (0x1 << bitPosi);
-    else if ((LPC_GPIO3 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-      LPC_GPIO3 ->DIR &= ~(0x1 << bitPosi);
+    if (!(LPC_GPIO3->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+      LPC_GPIO3->DIR |= (0x1 << bitPosi);
+    else if ((LPC_GPIO3->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+      LPC_GPIO3->DIR &= ~(0x1 << bitPosi);
     break;
   case PORT4:
-      if (!(LPC_GPIO4 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-        LPC_GPIO4 ->DIR |= (0x1 << bitPosi);
-      else if ((LPC_GPIO4 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-        LPC_GPIO4 ->DIR &= ~(0x1 << bitPosi);
+      if (!(LPC_GPIO4->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+        LPC_GPIO4->DIR |= (0x1 << bitPosi);
+      else if ((LPC_GPIO4->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+        LPC_GPIO4->DIR &= ~(0x1 << bitPosi);
       break;
     case PORT5:
-      if (!(LPC_GPIO5 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
-        LPC_GPIO5 ->DIR |= (0x1 << bitPosi);
-      else if ((LPC_GPIO5 ->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
-        LPC_GPIO5 ->DIR &= ~(0x1 << bitPosi);
+      if (!(LPC_GPIO5->DIR & (0x1 << bitPosi)) && (dir == GPIO_OUTPUT))
+        LPC_GPIO5->DIR |= (0x1 << bitPosi);
+      else if ((LPC_GPIO5->DIR & (0x1 << bitPosi)) && (dir == GPIO_INPUT))
+        LPC_GPIO5->DIR &= ~(0x1 << bitPosi);
       break;
   default:
     break;
@@ -160,18 +160,23 @@ uint8_t GPIOGetValue( uint32_t portNum, uint32_t bitPosi)
   switch ( portNum )
   {
     case PORT0:
-
-     //   ret = ( (LPC_GPIO0->DATA & (0x1 << bitPosi)) != 0);
-    break;
+        ret = ( (LPC_GPIO0->PIN & (0x1 << bitPosi)) != 0);
+        break;
     case PORT1:
-    //    ret = ( (LPC_GPIO1->DATA & (0x1 << bitPosi)) != 0);
-    break;
+        ret = ( (LPC_GPIO1->PIN & (0x1 << bitPosi)) != 0);
+        break;
     case PORT2:
-    //    ret = ( (LPC_GPIO2->DATA & (0x1 << bitPosi)) != 0);
-    break;
+        ret = ( (LPC_GPIO2->PIN & (0x1 << bitPosi)) != 0);
+        break;
     case PORT3:
-    //    ret = ( (LPC_GPIO3->DATA & (0x1 << bitPosi)) != 0);
-    break;
+        ret = ( (LPC_GPIO3->PIN & (0x1 << bitPosi)) != 0);
+        break;
+    case PORT4:
+        ret = ( (LPC_GPIO4->PIN & (0x1 << bitPosi)) != 0);
+        break;
+    case PORT5:
+        ret = ( (LPC_GPIO5->PIN & (0x1 << bitPosi)) != 0);
+        break;
     default:
       break;
   }
