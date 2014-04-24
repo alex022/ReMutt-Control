@@ -1,22 +1,48 @@
-/* Peripheral group ----------------------------------------------------------- */
-/** @addtogroup SSP
- * @{
+/*
+ * ssp.c
+ *
+ *  Created on: Apr 24, 2014
+ *      Author: eric_brunnett
  */
-#ifdef __BUILD_WITH_EXAMPLE__
-#include "lpc177x_8x_libcfg.h"
-#else
-//#include "lpc177x_8x_libcfg_default.h"
-#endif /* __BUILD_WITH_EXAMPLE__ */
-#ifdef _SSP
+
+
+/**********************************************************************
+* $Id$		lpc177x_8x_ssp.c			2011-06-02
+*//**
+* @file		lpc177x_8x_ssp.c
+* @brief	Contains all functions support for SSP firmware library
+*			on LPC177x_8x
+* @version	1.0
+* @date		02. June. 2011
+* @author	NXP MCU SW Application Team
+*
+* Copyright(C) 2011, NXP Semiconductor
+* All rights reserved.
+*
+***********************************************************************
+* Software that is described herein is for illustrative purposes only
+* which provides customers with programming information regarding the
+* products. This software is supplied "AS IS" without any warranties.
+* NXP Semiconductors assumes no responsibility or liability for the
+* use of the software, conveys no license or title under any patent,
+* copyright, or mask work right to the product. NXP Semiconductors
+* reserves the right to make changes in the software without
+* notification. NXP Semiconductors also make no representation or
+* warranty that such application will be suitable for the specified
+* use without further testing or modification.
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors'
+* relevant copyright in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
+* this code.
+**********************************************************************/
 
 /* Includes ------------------------------------------------------------------- */
-#include "lpc177x_8x_clkpwr.h"
 #include "ssp.h"
+#include "clkpwr.h"
 
 /* Public Functions ----------------------------------------------------------- */
-/** @addtogroup SSP_Public_Functions
- * @{
- */
 static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
 
 /*********************************************************************//**
@@ -58,14 +84,9 @@ static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
     SSPx->CPSR = prescale & SSP_CPSR_BITMASK;
 }
 
-/**
- * @}
- */
 
 /* Public Functions ----------------------------------------------------------- */
-/** @addtogroup SSP_Public_Functions
- * @{
- */
+
 
 /********************************************************************//**
  * @brief		Initializes the SSPx peripheral according to the specified
@@ -78,7 +99,7 @@ static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
 *                    specified SSP peripheral.
  * @return 		None
  *********************************************************************/
-void SSP_Init(LPC_SSP_TypeDef *SSPx/*, SSP_CFG_Type *SSP_ConfigStruct*/)
+void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct)
 {
 	uint32_t tmp;
 
@@ -98,7 +119,7 @@ void SSP_Init(LPC_SSP_TypeDef *SSPx/*, SSP_CFG_Type *SSP_ConfigStruct*/)
 	/* Configure SSP, interrupt is disable, LoopBack mode is disable,
 	 * SSP is disable, Slave output is disable as default
 	 */
-	/*tmp = ((SSP_ConfigStruct->CPHA) | (SSP_ConfigStruct->CPOL) \
+	tmp = ((SSP_ConfigStruct->CPHA) | (SSP_ConfigStruct->CPOL) \
 		| (SSP_ConfigStruct->FrameFormat) | (SSP_ConfigStruct->Databit))
 		& SSP_CR0_BITMASK;
 	// write back to SSP control register
@@ -109,7 +130,7 @@ void SSP_Init(LPC_SSP_TypeDef *SSPx/*, SSP_CFG_Type *SSP_ConfigStruct*/)
 	SSPx->CR1 = tmp;
 
 	// Set clock rate for SSP peripheral
-	setSSPclock(SSPx, SSP_ConfigStruct->ClockRate);*/
+	setSSPclock(SSPx, SSP_ConfigStruct->ClockRate);
 }
 
 /*********************************************************************//**
@@ -603,4 +624,8 @@ void SSP_DMACmd(LPC_SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewStat
  * @}
  */
 
-#endif /*_SSP*/
+/**
+ * @}
+ */
+
+/* --------------------------------- End Of File ------------------------------ */

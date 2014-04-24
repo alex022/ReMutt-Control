@@ -1,21 +1,16 @@
-/* Peripheral group ----------------------------------------------------------- */
-/** @defgroup SSP	SSP (Synchronous Serial Port)
- * @ingroup LPC177x_8xCMSIS_FwLib_Drivers
- * @{
+/*
+ * ssp.h
+ *
+ *  Created on: Apr 24, 2014
+ *      Author: eric_brunnett
  */
 
-#ifndef __LPC177X_8X_SSP_H_
-#define __LPC177X_8X_SSP_H_
+#ifndef SSP_H_
+#define SSP_H_
 
 /* Includes ------------------------------------------------------------------- */
 #include "LPC177x_8x.h"
 #include "lpc_types.h"
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /* Public Macros -------------------------------------------------------------- */
 /** @defgroup SSP_Public_Macros SSP Public Macros
@@ -139,14 +134,7 @@ extern "C"
 #define SSP_STAT_DONE		(1UL<<8)		/**< Done */
 #define SSP_STAT_ERROR		(1UL<<9)		/**< Error */
 
-/**
- * @}
- */
-
 /* Private Macros ------------------------------------------------------------- */
-/** @defgroup SSP_Private_Macros SSP Private Macros
- * @{
- */
 
 /* --------------------- BIT DEFINITIONS -------------------------------------- */
 /*********************************************************************//**
@@ -281,15 +269,9 @@ extern "C"
 /** DMACR	bit mask */
 #define SSP_DMA_BITMASK		((uint32_t)(0x03))
 
-/**
- * @}
- */
 
 
 /* Public Types --------------------------------------------------------------- */
-/** @defgroup SSP_Public_Types SSP Public Types
- * @{
- */
 
 /** @brief SSP configuration structure */
 typedef struct {
@@ -332,18 +314,11 @@ typedef struct {
 } SSP_DATA_SETUP_Type;
 
 
-/**
- * @}
- */
-
 
 /* Public Functions ----------------------------------------------------------- */
-/** @defgroup SSP_Public_Functions SSP Public Functions
- * @{
- */
 
 /* SSP Init/DeInit functions --------------------------------------------------*/
-void SSP_Init(LPC_SSP_TypeDef *SSPx/*, SSP_CFG_Type *SSP_ConfigStruct*/);
+void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct);
 void SSP_DeInit(LPC_SSP_TypeDef* SSPx);
 
 /* SSP configure functions ----------------------------------------------------*/
@@ -372,13 +347,4 @@ int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 void SSP_IntConfig(LPC_SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState);
 void SSP_ClearIntPending(LPC_SSP_TypeDef *SSPx, uint32_t IntType);
 
-
-/**
- * @}
- */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __LPC177X_8X_SSP_H_ */
+#endif /* SSP_H_ */
