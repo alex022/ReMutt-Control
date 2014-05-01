@@ -104,8 +104,9 @@ struct uartDmaConf {
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
-//void uart2Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
-
+void uart1Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
+void uart2Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
+int uart1Getchar(void);
 /*------------------------------------------------------------------------------
  function name:		uartNTx/uartXRx
  description: 		UART RX/TX polling functions.
@@ -114,8 +115,10 @@ void uart0Init    (const enum uartBaud baud, const enum uartStopBit stopBit, con
 ------------------------------------------------------------------------------*/
 void uart0Tx      (const uint8 *tx, const uint32 size);
 void uart0Rx      (uint8 *rx, const uint32 size);
-//void uart2Tx      (const uint8 *tx, const uint32 size);
-//void uart2Rx      (uint8 *rx, const uint32 size);
+void uart1Tx      (const uint8 *tx, const uint32 size);
+void uart1Rx      (uint8 *rx, const uint32 size);
+void uart2Tx      (const uint8 *tx, const uint32 size);
+void uart2Rx      (uint8 *rx, const uint32 size);
 
 /*------------------------------------------------------------------------------
  function name:		uartNInitIrq
@@ -124,6 +127,7 @@ void uart0Rx      (uint8 *rx, const uint32 size);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0InitIrq		(const struct uartIrqConf *irq);
+void uart1InitIrq		(const struct uartIrqConf *irq);
 //void uart2InitIrq		(const struct uartIrqConf *irq);
 
 /*------------------------------------------------------------------------------
@@ -134,6 +138,7 @@ void uart0InitIrq		(const struct uartIrqConf *irq);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0EnableIrqTx	(void);
+void uart1EnableIrqTx	(void);
 //void uart2EnableIrqTx	(void);
 
 /*------------------------------------------------------------------------------
@@ -143,6 +148,7 @@ void uart0EnableIrqTx	(void);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0DisableIrqTx	(void);
+void uart1DisableIrqTx	(void);
 //void uart2DisableIrqTx	(void);
 
 /*------------------------------------------------------------------------------
@@ -152,6 +158,7 @@ void uart0DisableIrqTx	(void);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0EnableIrqRx	(void);
+void uart1EnableIrqRx	(void);
 //void uart2EnableIrqRx	(void);
 
 /*------------------------------------------------------------------------------
@@ -161,9 +168,12 @@ void uart0EnableIrqRx	(void);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0InitDma 		(const struct uartDmaConf *dma);
+void uart1InitDma 		(const struct uartDmaConf *dma);
 //void uart2InitDma 		(const struct uartDmaConf *dma);
 void uart0DmaTx 		(const uint8 *tx, const uint32 size);
 void uart0DmaRx			(uint8 *rx, const uint32 size);
+void uart1DmaTx 		(const uint8 *tx, const uint32 size);
+void uart1DmaRx			(uint8 *rx, const uint32 size);
 //void uart2DmaTx 		(const uint8 *tx, const uint32 size);
 //void uart2DmaRx			(uint8 *rx, const uint32 size);
 
@@ -174,6 +184,7 @@ void uart0DmaRx			(uint8 *rx, const uint32 size);
  returned value:	none
 ------------------------------------------------------------------------------*/
 void uart0PutChar 		(char character);
+void uart1PutChar 		(char character);
 void uart2PutChar 		(char character);
 /******************************************************************************
 * END OF FILE

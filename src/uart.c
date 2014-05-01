@@ -33,6 +33,8 @@
 /* UART pins */
 # define UART0_PIN_TXD						SET_BIT(0)
 # define UART0_PIN_RXD						SET_BIT(0)
+# define UART1_PIN_TXD						SET_BIT(0)
+# define UART1_PIN_RXD						SET_BIT(0)
 # define UART2_PIN_TXD						SET_BIT(0)
 # define UART2_PIN_RXD						SET_BIT(0)
 
@@ -114,12 +116,14 @@ static struct uartPrivate uartPrivate[UART_PORTS];
 static struct uartDma uartDma[UART_PORTS];
 
 static uint8 u0buff[16];
+static uint8 u1buff[16];
 static uint8 u2buff[16];
 
 /*==============================================================================
  Static function prototypes
 ==============================================================================*/
 static void u0DmaEndRx (void);
+static void u1DmaEndRx (void);
 static void dummyService (void);
 
 /*==============================================================================
@@ -155,6 +159,41 @@ void uart0Init (const enum uartBaud baud, const enum uartStopBit stopBit, const 
     LPC_IOCON->P0_3 = UART0_PIN_RXD;
 }
 
+/*==============================================================================
+ Global function definitions
+==============================================================================*/
+/*------------------------------------------------------------------------------
+ function name:		uarT1Init
+ description: 		init UART1
+ parameters:   		baud rate, stop bit, parity
+ returned value:	none
+------------------------------------------------------------------------------*/
+void uart1Init (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity)
+{
+	uint32 div;
+
+	/* turn on UART1 */
+	LPC_SC->PCONP |= LPC_SC_PCONP_PCUART1;
+    /* set DLAB to enable access to divisor latches- DLL and DLM are accessible,
+     * 8 bit character, 1 bit stop, none parity */
+    LPC_UART1->LCR = LCR_WORD_LENGTH_SELECT_8BIT | stopBit | parity | LCR_DLAB;
+    /* set divisor latches DLL, DLM */
+    div = (SYSTEM_FREQUENCY / UART1_BASE_DIV) / baud / 2;
+    LPC_UART1->DLM = div / 256;
+    LPC_UART1->DLL = div % 256;
+    /* clear DLAB to disable DLL, DLM- now RBR, THR and IER are accessible */
+    LPC_UART1->LCR &= ~LCR_DLAB;
+    /* set fifo */
+    LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_1CHAR;
+    /* set pins*/
+    LPC_IOCON->P3_16 = 0;				/* reset registers */
+    LPC_IOCON->P3_17 = 0;
+    LPC_IOCON->P3_16 = SET_BIT(0);		/* set registers to FUNC = 011 */
+    LPC_IOCON->P3_16 |= SET_BIT(1);
+    LPC_IOCON->P3_17 = SET_BIT(0);
+    LPC_IOCON->P3_17 |= SET_BIT(1);
+}
+
 /*------------------------------------------------------------------------------
  function name:		uart2Init
  description: 		init UART2
@@ -188,7 +227,7 @@ void uart2Init (const enum uartBaud baud, const enum uartStopBit stopBit, const 
 /*------------------------------------------------------------------------------
  function name:   uart0Tx
  description:     send data via polling
- parameters:      TX bufffer, size
+ parameters:      TX buffer, size
  returned value:  none
 ------------------------------------------------------------------------------*/
 void uart0Tx (const uint8 *tx, const uint32 size)
@@ -212,13 +251,72 @@ void uart0Tx (const uint8 *tx, const uint32 size)
 void uart0Rx (uint8 *rx, const uint32 size)
 {
 	uint32 i;
+	int retval;
+	i = size;
+	for (i = 0; i < size; ++i)
+	{
+		while (!(LPC_UART0->LSR & LSR_RECEIVER_DATA_READY)){
+			retval = uart1Getchar();			/* used to receive input from the WiFi module, can comment out */
+	    	if(retval != -1)
+	    		printf("%c", retval);
+		}
+		*rx++ = LPC_UART0->RBR;
+	}
+}
+
+/*------------------------------------------------------------------------------
+ function name:   uart1Tx
+ description:     send data via polling
+ parameters:      TX buffer, size
+ returned value:  none
+------------------------------------------------------------------------------*/
+void uart1Tx (const uint8 *tx, const uint32 size)
+{
+	uint32 i;
 
 	i = size;
 	for (i = 0; i < size; ++i)
 	{
-		while (!(LPC_UART0->LSR & LSR_RECEIVER_DATA_READY));
-		*rx++ = LPC_UART0->RBR;
+		while (!(LPC_UART1->LSR & LSR_THR_EMPTY));
+			LPC_UART1->THR = *tx++;
 	}
+}
+
+/*------------------------------------------------------------------------------
+ function name:   uart1Rx
+ description:     get data via polling
+ parameters:      RX buffer, size
+ returned value:  none
+------------------------------------------------------------------------------*/
+void uart1Rx (uint8 *rx, const uint32 size)
+{
+	uint32 i;
+
+	i = size;
+	for (i = 0; i < size; ++i)
+	{
+		while (!(LPC_UART1->LSR & LSR_RECEIVER_DATA_READY));
+		*rx++ = LPC_UART1->RBR;
+	}
+}
+
+void uart1PutChar (char character)
+{
+	while (!(LPC_UART1->LSR & LSR_THR_EMPTY));
+	LPC_UART1->THR = character;
+}
+
+int uart1Getchar(void)
+{
+	int i;
+	if (LPC_UART1->LSR & LSR_RECEIVER_DATA_READY)                 // check if character is available
+	{
+		//uart0Putch('#');
+
+		return LPC_UART1->RBR;                     // return character
+	}
+
+	return -1;
 }
 
 /*------------------------------------------------------------------------------
@@ -335,6 +433,84 @@ void uart0InitIrq		(const struct uartIrqConf *irq)
 	}
 }
 
+
+/*------------------------------------------------------------------------------
+ function name:   uart1InitIrq
+ description:     init UART1 interrupts
+ parameters:      pointer to uart interrupt configuration struct
+ returned value:  none
+------------------------------------------------------------------------------*/
+void uart1InitIrq		(const struct uartIrqConf *irq)
+{
+    /* reset and configure fifo */
+    switch (irq->rxTriggerLvl)
+    {
+    case uartTRIGER_LEVEL_1CHAR:
+    	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_1CHAR;
+    	break;
+
+    case uartTRIGER_LEVEL_4CHAR:
+    	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_4CHAR;
+    	break;
+
+    case uartTRIGER_LEVEL_8CHAR:
+    	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_8CHAR;
+    	break;
+
+    case uartTRIGER_LEVEL_14CHAR:
+    	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_14CHAR;
+    	break;
+
+    default:
+    	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_RX_FIFO_TRIGGER_LVL_1CHAR;
+    	break;
+    }
+
+    /* set NVIC */
+	NVIC_SetPriority(UART1_IRQn, irq->priority);	/* set priority in NVIC */
+	NVIC_EnableIRQ(UART1_IRQn);						/* enable interrupt in NVIC */
+
+    /* TX interrupt */
+	uartPrivate[1].txBuff = irq->txBuff;			/* set TX IRQ buffer */
+	uartPrivate[1].txBuffSize = irq->txBuffSize;	/* data length */
+	if (irq->txEndService == 0)    					/* check if user service is 0 */
+	{
+	  uartPrivate[1].txIrqService = dummyService;
+	}
+	else
+	{
+	  uartPrivate[1].txIrqService = irq->txEndService;
+	}
+
+	/* RX interrupt */
+	uartPrivate[1].rxTriggerLvl = irq->rxTriggerLvl;
+	if (irq->rxBuff == 0)							/* check if buffer is 0, otherwise vector can be overwritten */
+	{
+		uartPrivate[1].rxBuff = u1buff;
+	}
+	else
+	{
+		uartPrivate[1].rxBuff = irq->rxBuff;
+	}
+
+	if (irq->rxEndService == 0)    					/* check if user service is 0 */
+	{
+	  uartPrivate[1].rxIrqService = dummyService;
+	}
+	else
+	{
+	   uartPrivate[1].rxIrqService = irq->rxEndService;
+	}
+
+	if (irq->timeout == 0)
+	{
+		uartPrivate[1].timeout = dummyService;
+	}
+	else
+	{
+		uartPrivate[1].timeout = irq->timeout;
+	}
+}
 /*------------------------------------------------------------------------------
  function name:   uart2InitIrq
  description:     init UART2 interrupts
@@ -425,6 +601,18 @@ void uart0EnableIrqTx (void)
 }
 
 /*------------------------------------------------------------------------------
+ function name:		uart1EnableIrqTx
+ description:		enable UART TX interrupts
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void uart1EnableIrqTx (void)
+{
+	LPC_UART1->IER |= IER_INTERRUPT_EN_THRE;		/* enable TX interrupt */
+	LPC_UART1->THR = 'x';							/* this will send first char & trigger TX interrupt ISR */
+}
+
+/*------------------------------------------------------------------------------
  function name:		uart2EnableIrqTx
  description:		enable UART TX interrupts
  parameters:		none
@@ -448,6 +636,17 @@ void uart0DisableIrqTx (void)
 }
 
 /*------------------------------------------------------------------------------
+ function name:		uart1DisableIrqTx
+ description:		disable UART TX interrupts
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void uart1DisableIrqTx (void)
+{
+	LPC_UART1->IER &= ~IER_INTERRUPT_EN_THRE;
+}
+
+/*------------------------------------------------------------------------------
  function name:		uart2DisableIrqTx
  description:		disable UART TX interrupts
  parameters:		none
@@ -467,6 +666,17 @@ void uart2DisableIrqTx (void)
 void uart0EnableIrqRx (void)
 {
 	LPC_UART0->IER |= IER_INTERRUPT_EN_RBR;			/* enable TX interrupt */
+}
+
+/*------------------------------------------------------------------------------
+ function name:		uart1EnableIrqRx
+ description:		enable UART RX interrupts
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void uart1EnableIrqRx (void)
+{
+	LPC_UART1->IER |= IER_INTERRUPT_EN_RBR;			/* enable TX interrupt */
 }
 
 /*------------------------------------------------------------------------------
@@ -620,11 +830,155 @@ void uart0InitDma (const struct uartDmaConf *dma)
 
     /* turn on reset and configure fifo, enable DMA support */
 	/* GPDMA BURST is half of uart fifo (8 chars), so triger level is set to 8 chars as well */
-	LPC_UART0->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_DMA_ENABLE | FCR_RX_FIFO_TRIGGER_LVL_8CHAR;
+	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_DMA_ENABLE | FCR_RX_FIFO_TRIGGER_LVL_8CHAR;
 	uartDma[0].txChnlSettings = (*uartDma[0].txChnlInit)(&uartDma[0].txConf);
 	uartDma[0].rxChnlSettings = (*uartDma[0].rxChnlInit)(&uartDma[0].rxConf);
 }
 
+/*------------------------------------------------------------------------------
+ function name:		uart1InitDma
+ description: 		init UART DMA support
+ parameters:		DMA configuration struct
+ returned value:	none
+------------------------------------------------------------------------------*/
+void uart1InitDma (const struct uartDmaConf *dma)
+{
+	/* UART TX GPDMA */
+	uartDma[1].txConf.mode = gpdmaM2P;						/* memory to uart */
+	uartDma[1].txConf.srcWidth = gpdmaS_WIDTH8;
+	uartDma[1].txConf.dstWidth = gpdmaD_WIDTH8;				/* uart word width is 1 byte */
+	uartDma[1].txConf.sbSize = gpdmaSB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
+	uartDma[1].txConf.dbSize = gpdmaDB_SIZE8;				/* uart has 16 byte TX/RX fifo */
+	uartDma[1].txConf.srcPeriph = 0;						/* if memory than 0 */
+	uartDma[1].txConf.dstPeriph = gpdmaDST_PERIPH_UART0TX;	/* uart 0 TX is destination */
+	uartDma[1].txConf.flowCtrl = gpdmaFLOW_CTRL_M2P_DMA;	/* dma is flow controller */
+	uartDma[1].txConf.srcAddr = (uint32)u1buff;				/* source in memory */
+	uartDma[1].txConf.dstAddr = (uint32)&LPC_UART1->THR;	/* destination uart's fifo */
+	if (dma->txEndService == 0)
+	{
+		uartDma[1].txConf.transferEndService = dummyService;
+	}
+	else
+	{
+		uartDma[1].txConf.transferEndService = dma->txEndService;
+	}
+	if (dma->error == 0)
+	{
+		uartDma[1].txConf.errorService = dummyService;
+	}
+	else
+	{
+		uartDma[1].txConf.errorService = dma->error;
+	}
+
+	/* UART RX GPDMA */
+	uartDma[1].rxConf.mode = gpdmaP2M;						/* memory to uart */
+	uartDma[1].rxConf.srcWidth = gpdmaS_WIDTH8;				/* uart word width is 1 byte */
+	uartDma[1].rxConf.dstWidth = gpdmaD_WIDTH8;
+	uartDma[1].rxConf.sbSize = gpdmaSB_SIZE8;				/* uart has 16 byte TX/RX fifo */
+	uartDma[1].rxConf.dbSize = gpdmaDB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
+	uartDma[1].rxConf.srcPeriph = gpdmaSRC_PERIPH_UART0RX;	/* uart 0 RX is source */
+	uartDma[1].rxConf.dstPeriph = 0;						/* if memory than 0 */
+	uartDma[1].rxConf.flowCtrl = gpdmaFLOW_CTRL_P2M_DMA;	/* dma is flow controller */
+	uartDma[1].rxConf.srcAddr = (uint32)&LPC_UART1->RBR;	/* source- uart's fifo */
+	uartDma[1].rxConf.dstAddr = (uint32)u1buff;				/* dst in memory */
+	uartDma[1].rxConf.transferEndService = u1DmaEndRx;
+	if (dma->rxEndService == 0)
+	{
+		uartDma[1].rxUsrService = dummyService;
+	}
+	else
+	{
+		uartDma[1].rxUsrService = dma->rxEndService;
+	}
+
+	if (dma->error == 0)
+	{
+		uartDma[1].rxConf.errorService = dummyService;
+	}
+	else
+	{
+		uartDma[1].rxConf.errorService = dma->error;
+	}
+
+	switch(dma->txChnl)
+	{
+	case gpdmaCHNL0:
+		uartDma[1].txChnlInit = gpdmaChnl0Init;
+		uartDma[1].txChnlEnable = gpdmaChnl0Enable;
+		break;
+	case gpdmaCHNL1:
+		uartDma[1].txChnlInit = gpdmaChnl1Init;
+		uartDma[1].txChnlEnable = gpdmaChnl1Enable;
+		break;
+	case gpdmaCHNL2:
+		uartDma[1].txChnlInit = gpdmaChnl2Init;
+		uartDma[1].txChnlEnable = gpdmaChnl2Enable;
+		break;
+	case gpdmaCHNL3:
+		uartDma[1].txChnlInit = gpdmaChnl3Init;
+		uartDma[1].txChnlEnable = gpdmaChnl3Enable;
+		break;
+	case gpdmaCHNL4:
+		uartDma[1].txChnlInit = gpdmaChnl4Init;
+		uartDma[1].txChnlEnable = gpdmaChnl4Enable;
+		break;
+	case gpdmaCHNL5:
+		uartDma[1].txChnlInit = gpdmaChnl5Init;
+		uartDma[1].txChnlEnable = gpdmaChnl5Enable;
+		break;
+	case gpdmaCHNL6:
+		uartDma[1].txChnlInit = gpdmaChnl6Init;
+		uartDma[1].txChnlEnable = gpdmaChnl6Enable;
+		break;
+	case gpdmaCHNL7:
+		uartDma[1].txChnlInit = gpdmaChnl7Init;
+		uartDma[1].txChnlEnable = gpdmaChnl7Enable;
+		break;
+	}
+
+	switch(dma->rxChnl)
+	{
+	case gpdmaCHNL0:
+		uartDma[1].rxChnlInit = gpdmaChnl0Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl0Enable;
+		break;
+	case gpdmaCHNL1:
+		uartDma[1].rxChnlInit = gpdmaChnl1Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl1Enable;
+		break;
+	case gpdmaCHNL2:
+		uartDma[1].rxChnlInit = gpdmaChnl2Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl2Enable;
+		break;
+	case gpdmaCHNL3:
+		uartDma[1].rxChnlInit = gpdmaChnl3Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl3Enable;
+		break;
+	case gpdmaCHNL4:
+		uartDma[1].rxChnlInit = gpdmaChnl4Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl4Enable;
+		break;
+	case gpdmaCHNL5:
+		uartDma[1].rxChnlInit = gpdmaChnl5Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl5Enable;
+		break;
+	case gpdmaCHNL6:
+		uartDma[1].rxChnlInit = gpdmaChnl6Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl6Enable;
+		break;
+	case gpdmaCHNL7:
+		uartDma[1].rxChnlInit = gpdmaChnl7Init;
+		uartDma[1].rxChnlEnable = gpdmaChnl7Enable;
+		break;
+	}
+
+    /* turn on reset and configure fifo, enable DMA support */
+	/* GPDMA BURST is half of uart fifo (8 chars), so triger level is set to 8 chars as well */
+	LPC_UART1->FCR = FCR_FIFO_ENABLE | FCR_FIFO_RST_RX | FCR_FIFO_RST_TX | FCR_DMA_ENABLE | FCR_RX_FIFO_TRIGGER_LVL_8CHAR;
+	uartDma[1].txChnlSettings = (*uartDma[1].txChnlInit)(&uartDma[1].txConf);
+	uartDma[1].rxChnlSettings = (*uartDma[1].rxChnlInit)(&uartDma[1].rxConf);
+}
 /*------------------------------------------------------------------------------
  function name:		uart2InitDma
  description: 		init UART DMA support
@@ -722,6 +1076,31 @@ void uart0DmaRx (uint8 *rx, const uint32 size)
 }
 
 /*------------------------------------------------------------------------------
+ function name:   uart1DmaTx
+ description:     send data via GDPMA
+ parameters:      TX buffer, size
+ returned value:  none
+------------------------------------------------------------------------------*/
+void uart1DmaTx (const uint8 *tx, const uint32 size)
+{
+	memcpy(u1buff, tx, size);									/* copy data to GPDMA buffer */
+	uartDma[1].txChnlEnable(uartDma[1].txChnlSettings, size);	/* enable channel */
+}
+
+/*------------------------------------------------------------------------------
+ function name:   uart0DmaRx
+ description:     send data via GDPMA
+ parameters:      TX buffer, size
+ returned value:  none
+------------------------------------------------------------------------------*/
+void uart1DmaRx (uint8 *rx, const uint32 size)
+{
+	uartDma[1].rxUsrBuff = rx;									/* all RX data need to be saved */
+	uartDma[1].rxUsrSize = size;
+	uartDma[1].rxChnlEnable(uartDma[1].rxChnlSettings, size);
+}
+
+/*------------------------------------------------------------------------------
  function name:   uart2DmaTx
  description:     send data via GDPMA
  parameters:      TX buffer, size
@@ -788,6 +1167,17 @@ static void u0DmaEndRx (void)
 {
 	memcpy(uartDma[0].rxUsrBuff, u0buff, uartDma[0].rxUsrSize);
 	(*uartDma[0].rxUsrService)();								/* call user service */
+}
+/*------------------------------------------------------------------------------
+ function name:   u0DmaEndRx
+ description:     function called when GDPMA transfer is completed
+ parameters:      none
+ returned value:  none
+------------------------------------------------------------------------------*/
+static void u1DmaEndRx (void)
+{
+	memcpy(uartDma[1].rxUsrBuff, u1buff, uartDma[1].rxUsrSize);
+	(*uartDma[1].rxUsrService)();								/* call user service */
 }
 /*------------------------------------------------------------------------------
  function name:   dummyService
@@ -898,6 +1288,103 @@ void UART0_IRQHandler (void)
 	}
 
 }
+
+/*------------------------------------------------------------------------------
+ function name:   UART1_IRQHandler
+ description:     UART1 ISR
+ parameters:      none
+ returned value:  none
+------------------------------------------------------------------------------*/
+void UART1_IRQHandler (void)
+{
+	volatile uint32 status;
+	uint32 i;
+
+	status = LPC_UART1->IIR;
+
+	/* TX fifo empty */
+	if ((status & IIR_IRQ_ID_MASK) == IIR_THRE)
+	{
+		for (i = 0; i < uartPrivate[1].txBuffSize; ++i)
+		{
+			LPC_UART1->THR = uartPrivate[1].txBuff[i];		/* fill fifo */
+		}
+		uartPrivate[1].txIrqService();
+	}
+
+	/* timeout */
+	if ((status & IIR_IRQ_ID_MASK) == IIR_CTI)
+	{
+		u1buff[1] = LPC_UART1->RBR;
+		uartPrivate[1].rxBuff[1] = u1buff[1];
+		(*uartPrivate[1].timeout)();
+	}
+
+	/* received data available */
+	if ((status & IIR_IRQ_ID_MASK) == IIR_RDA)
+	{
+		switch (uartPrivate[1].rxTriggerLvl)
+		{
+		case uartTRIGER_LEVEL_1CHAR:
+			u1buff[1] = LPC_UART1->RBR;
+			uartPrivate[1].rxBuff[1] = u1buff[1];
+			break;
+
+		case uartTRIGER_LEVEL_4CHAR:
+			u1buff[0] = LPC_UART1->RBR;
+			u1buff[1] = LPC_UART1->RBR;
+			u1buff[2] = LPC_UART1->RBR;
+			u1buff[3] = LPC_UART1->RBR;
+			memcpy(uartPrivate[1].rxBuff, u1buff, 4);
+			break;
+
+		case uartTRIGER_LEVEL_8CHAR:
+			u1buff[0] = LPC_UART1->RBR;
+			u1buff[1] = LPC_UART1->RBR;
+			u1buff[2] = LPC_UART1->RBR;
+			u1buff[3] = LPC_UART1->RBR;
+			u1buff[4] = LPC_UART1->RBR;
+			u1buff[5] = LPC_UART1->RBR;
+			u1buff[6] = LPC_UART1->RBR;
+			u1buff[7] = LPC_UART1->RBR;
+			memcpy(uartPrivate[1].rxBuff, u1buff, 8);
+			break;
+
+		case uartTRIGER_LEVEL_14CHAR:
+			u1buff[0] = LPC_UART1->RBR;
+			u1buff[1] = LPC_UART1->RBR;
+			u1buff[2] = LPC_UART1->RBR;
+			u1buff[3] = LPC_UART1->RBR;
+			u1buff[4] = LPC_UART1->RBR;
+			u1buff[5] = LPC_UART1->RBR;
+			u1buff[6] = LPC_UART1->RBR;
+			u1buff[7] = LPC_UART1->RBR;
+			u1buff[8] = LPC_UART1->RBR;
+			u1buff[9] = LPC_UART1->RBR;
+			u1buff[10] = LPC_UART1->RBR;
+			u1buff[11] = LPC_UART1->RBR;
+			u1buff[12] = LPC_UART1->RBR;
+			u1buff[13] = LPC_UART1->RBR;
+			memcpy(uartPrivate[1].rxBuff, u1buff, 14);
+			break;
+
+		default:
+			u1buff[0] = LPC_UART1->RBR;
+			u1buff[1] = LPC_UART1->RBR;
+			u1buff[2] = LPC_UART1->RBR;
+			u1buff[3] = LPC_UART1->RBR;
+			u1buff[4] = LPC_UART1->RBR;
+			u1buff[5] = LPC_UART1->RBR;
+			u1buff[6] = LPC_UART1->RBR;
+			u1buff[7] = LPC_UART1->RBR;
+			memcpy(uartPrivate[1].rxBuff, u1buff, 8);
+			break;
+		}
+		(*uartPrivate[0].rxIrqService)();
+	}
+
+}
+
 
 /*------------------------------------------------------------------------------
  function name:   UART2_IRQHandler
