@@ -13,7 +13,9 @@
 /* Signal Macros */
 #define AUTO_CONNECT 1
 #define CMD_MODE 2
+#define MAX_SIZE 50
 
+/* Function prototypes */
 void initWiFi(int setting);
 
 #endif /* WIFI_H_ */

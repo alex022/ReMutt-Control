@@ -7,8 +7,13 @@
 
 #include "wifi.h"
 #include <stdio.h>
+#include <string.h>
 
 void initWiFi(int setting){
+	int i;
+	int length;
+	int retval;
+	char cmd[MAX_SIZE] = " ";
 	uart1Init(uartBAUD9600, uartSTOP_BIT_1, uartPARITY_DISABLE);
 	if(setting == CMD_MODE){
 		printf("Entering WiFi command mode\n\r");
