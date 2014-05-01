@@ -10,8 +10,6 @@
 ==============================================================================*/
 
 #include "fsr_circuit.h"
-#include "typedef.h"
-#include <stdio.h>
 
 /*==============================================================================
  Global function definitions
@@ -20,7 +18,7 @@
 /*------------------------------------------------------------------------------
  function name:		initFSR
  description: 		initializes the gpios for the load sensor circuits
- parameters:		desired voltage, stop bit, parity
+ parameters:		none
  returned value:	none
 ------------------------------------------------------------------------------*/
 void initFSR()
@@ -62,10 +60,10 @@ void initFSR()
  function name:		setDCPVoltage
  description: 		set the digitally controlled potentiometer for a given load
  	 	 	 	 	 signal to a desired voltage
- parameters:		desired voltage, stop bit, parity
+ parameters:		desired voltage, DCP signal select
  returned value:	none
-------------------------------------------------------------------------------
-void setDCPVoltage (int voltage, uint8 signal)
+------------------------------------------------------------------------------*/
+/*void setDCPVoltage (int voltage, uint8 signal)
 {
 	int i = voltage;
 	while(i > 0)
@@ -101,11 +99,12 @@ int32 promptIncrementDCP(uint8 dcp)
 {
 	int32 increments = 0;
 	uint8 input;
+	scanf("%c", &input);
 	do
 	{
-		printf("Increment Up(u) or Down(d) or Quit(q)?");
+		printf("\n\rIncrement Up(u) or Down(d) or Quit(q)? ");
 		scanf("%c", &input);
-		printf(" %c\n\r", input);
+		printf("%c", input);
 		if (input == 'd' || input == 'D' || input == 'u' || input == 'U')
 		{
 			if (input == 'd' || input == 'D')
@@ -159,4 +158,28 @@ int32 promptIncrementDCP(uint8 dcp)
 	}while(input == 'd' || input == 'D' || input == 'u' || input == 'U');
 
 	return increments;
+}
+
+/*------------------------------------------------------------------------------
+ function name:		getLoadSignal
+ description: 		get the specified load signal
+ parameters:		which signal (FOOD_FULL/WATER_FULL/WATER_EMPTY)
+ returned value:	gpio value
+------------------------------------------------------------------------------*/
+uint8 getLoadSignal(uint8 dcp)
+{
+	uint8 value = 1;
+	switch(dcp)
+	{
+		case WATER_FULL:
+			value = GPIOGetValue(WATER_FULL_SIG_PORT, WATER_FULL_SIG_PIN);
+			break;
+		case WATER_EMPTY:
+			value = GPIOGetValue(WATER_EMPTY_SIG_PORT, WATER_EMPTY_SIG_PORT);
+			break;
+		case FOOD_FULL:
+			value = GPIOGetValue(FOOD_FULL_SIG_PORT, FOOD_FULL_SIG_PIN);
+			break;
+	}
+	return value;
 }

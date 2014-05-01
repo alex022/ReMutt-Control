@@ -14,9 +14,12 @@
 
 #include "gpio.h"
 #include "typedef.h"
+#include <stdio.h>
+
 /*==============================================================================
  Defines
 ==============================================================================*/
+
 /*Signal Ordering*/
 #define WATER_FULL		1
 #define WATER_EMPTY		2
@@ -55,8 +58,6 @@
 #define WATER_EMPTY_CS_PORT		PORT3
 #define WATER_EMPTY_CS_PIN		20
 
-//TODO: Water full and water empty control signals
-
 /*==============================================================================
  Types
 ==============================================================================*/
@@ -67,7 +68,7 @@
 /*------------------------------------------------------------------------------
  function name:		initFSR
  description: 		initializes the gpios for the load sensor circuits
- parameters:		desired voltage, stop bit, parity
+ parameters:		none
  returned value:	none
 ------------------------------------------------------------------------------*/
 void initFSR();
@@ -76,7 +77,7 @@ void initFSR();
  function name:		setDCPVoltage
  description: 		set the digitally controlled potentiometer for a given load
  	 	 	 	 	 signal to a desired voltage
- parameters:		desired voltage, stop bit, parity
+ parameters:		desired voltage, DCP signal select
  returned value:	none
 ------------------------------------------------------------------------------*/
 //void setDCPVoltage (int voltage, uint8 signal);
@@ -89,5 +90,13 @@ void initFSR();
  returned value:	number of increments (negative = number of decrements)
 ------------------------------------------------------------------------------*/
 int32 promptIncrementDCP(uint8 dcp);
+
+/*------------------------------------------------------------------------------
+ function name:		getLoadSignal
+ description: 		get the specified load signal
+ parameters:		which signal (FOOD_FULL/WATER_FULL/WATER_EMPTY)
+ returned value:	gpio value
+------------------------------------------------------------------------------*/
+uint8 getLoadSignal(uint8 dcp);
 
 #endif /* FSR_CIRCUIT_H_ */
