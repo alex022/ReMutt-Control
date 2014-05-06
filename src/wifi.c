@@ -8,6 +8,7 @@
 #include "wifi.h"
 #include <stdio.h>
 #include <string.h>
+#include <gpio.h>
 
 void initWiFi(int setting){
 	int i;
@@ -15,8 +16,10 @@ void initWiFi(int setting){
 	int retval;
 	char cmd[MAX_SIZE] = " ";
 	uart1Init(uartBAUD9600, uartSTOP_BIT_1, uartPARITY_DISABLE);
+	GPIOSetDir(4, 20, 1);
+	GPIOSetValue(4, 20, 0);
 	if(setting == CMD_MODE){
-		printf("Entering WiFi command mode\n\r");
+		printf("Entering WiFi command mode.\n\r");
 		while(1){
 			for(i = 0; i < 50; i++)
 				cmd[i] = "";
@@ -50,6 +53,89 @@ void initWiFi(int setting){
 		}
 	}
 	else if(setting == AUTO_CONNECT){
-		printf("Automatically connecting to AP...no code here yet though lol\n\r");
+		printf("Automatically connecting to the configured AP.\n\r");
+		uart1PutChar('$');
+		uart1PutChar('$');
+		uart1PutChar('$');
+		printf("$$$: ");
+		for(i = 0; i < 1000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1)
+				printf("%c", retval);
+		}
+		printf("\n\r");
+		uart1PutChar('r');
+		uart1PutChar('e');
+		uart1PutChar('b');
+		uart1PutChar('o');
+		uart1PutChar('o');
+		uart1PutChar('t');
+		uart1PutChar('\r');
+		printf("reboot1: ");
+		for(i = 0; i < 1000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1)
+				printf("%c", retval);
+		}
+		printf("\n\r");
+		uart1PutChar('r');
+		uart1PutChar('e');
+		uart1PutChar('b');
+		uart1PutChar('o');
+		uart1PutChar('o');
+		uart1PutChar('t');
+		uart1PutChar('\r');
+		printf("reboot1: ");
+		for(i = 0; i < 1000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1)
+				printf("%c", retval);
+		}
+		printf("\n\r");
+		uart1PutChar('$');
+		uart1PutChar('$');
+		uart1PutChar('$');
+		printf("$$$: ");
+		for(i = 0; i < 10000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1)
+				printf("%c", retval);
+		}
+		printf("\n\r");
+		uart1PutChar('l');
+		uart1PutChar('e');
+		uart1PutChar('a');
+		uart1PutChar('v');
+		uart1PutChar('e');
+		uart1PutChar('\r');
+		printf("reboot1: ");
+		for(i = 0; i < 1000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1)
+				printf("%c", retval);
+		}
+		printf("\n\r");
+		uart1PutChar('j');
+		uart1PutChar('o');
+		uart1PutChar('i');
+		uart1PutChar('n');
+		uart1PutChar(' ');
+		uart1PutChar('e');
+		uart1PutChar('c');
+		uart1PutChar('e');
+		uart1PutChar('1');
+		uart1PutChar('8');
+		uart1PutChar('9');
+		uart1PutChar('\r');
+		printf("reboot2: ");
+		for(i = 0; i < 10000000; i++){
+			retval = uart1Getchar();
+			if(retval != -1){
+				printf("%c", retval);
+				i--;
+			}
+		}
+		printf("\n\rWiFi should connect to the AP if it is in range\n\r");
+
 	}
 }
