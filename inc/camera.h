@@ -27,15 +27,18 @@
 
 #define FBUF_CURRENTFRAME		0x00
 #define FBUF_NEXTFRAME			0x01
+#define FBUF_RESUMEFRAME		0x02
 #define FBUF_STOPCURRENTFRAME	0x00
 
 uint8 checkReply(uint8* r, uint8 c);
 uint8 setUartSpeed(const enum uartBaud baud);
 uint8 cameraReset();
+uint8 cameraInit();
 uint8 getVersion();
-uint8 takePhoto();
+void takePhoto();
+uint8 stopFrame();
+uint8 resumeFrame();
 uint32 getBufferLength();
 uint8* getPhoto(uint32 bytes);
-//uint8 getPhoto(uint32 bytes, uint8** photo);
 
 #endif /* CAMERA_H_ */

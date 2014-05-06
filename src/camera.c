@@ -13,6 +13,18 @@ uint8 checkReply(uint8* r, uint8 c)
 	return 0;
 }
 
+uint8 cameraInit()
+{
+	uint8 return_command[5];
+
+	uart2Init(uartBAUD38400, uartSTOP_BIT_1, uartPARITY_DISABLE);
+	if (!cameraReset())
+		return 0; //Should work but might not
+	setUartSpeed(uartBAUD115200);
+
+	return 1;
+}
+
 uint8 setUartSpeed(const enum uartBaud baud)
 {
 	uint8 command[10];
@@ -101,7 +113,7 @@ uint8 getVersion()
 	return 0;
 }
 
-uint8 takePhoto()
+uint8 stopFrame()
 {
 	uint8 command[5];
 	uint8 return_command[10];
@@ -111,12 +123,32 @@ uint8 takePhoto()
 	command[1] = SERIAL_NUM;
 	command[2] = CMD_TAKEPHOTO;
 	command[3] = 0x01;
-	command[4] = FBUF_CURRENTFRAME;
+	command[4] = FBUF_STOPCURRENTFRAME;
 	uart2Tx((uint8*) command,5);
 
 	uart2Rx((uint8*)&return_command,5);
 
-	if (checkReply(return_command, CMD_TAKEPHOTO) && return_command == 0x00)
+	if (checkReply(return_command, CMD_TAKEPHOTO) && return_command[4] == 0x00)
+		return 1;
+	return 0;
+}
+
+uint8 resumeFrame()
+{
+	uint8 command[5];
+	uint8 return_command[10];
+
+	//stop frame update
+	command[0] = CMD_SEND;
+	command[1] = SERIAL_NUM;
+	command[2] = CMD_TAKEPHOTO;
+	command[3] = 0x01;
+	command[4] = FBUF_RESUMEFRAME;
+	uart2Tx((uint8*) command,5);
+
+	uart2Rx((uint8*)&return_command,5);
+
+	if (checkReply(return_command, CMD_TAKEPHOTO) && return_command[4] == 0x00)
 		return 1;
 	return 0;
 }
@@ -153,9 +185,7 @@ uint8* getPhoto(uint32 bytes)
 {
 	uint32 addr = 0;
 	uint8 command[20];
-	uint8 start = 0;
 	uint8 return_command[40];
-	uint32 return_length;
 	uint8* photo = malloc(bytes*sizeof(uint8));
 	uint32 photo_pos = 0;
 	uint8 photo_data[32];
@@ -166,6 +196,7 @@ uint8* getPhoto(uint32 bytes)
 	command[3] = 0x0C;
 	command[4] = FBUF_CURRENTFRAME;
 	command[5] = 0x0A;
+
 
 	while (addr < bytes + 32)
 	{
@@ -179,14 +210,21 @@ uint8* getPhoto(uint32 bytes)
 		command[13] = 0x20;
 		command[14] = 0x00;
 		command[15] = 0x00;
+
+
 		uart2Tx((uint8*) command,16);
 
-		uart2Rx((uint8*)&return_command,5);
-		uart2Rx((uint8*)&photo_data,32);
 		uart2Rx((uint8*)&return_command,5);
 
 		if (!checkReply(return_command, CMD_READBUFF))
 			return 0;
+
+		uart2Rx((uint8*)&photo_data, 32);
+		uart2Rx((uint8*)&return_command,5);
+
+		if (!checkReply(return_command, CMD_READBUFF))
+			return 0;
+
 		uint8 pos = 0;
 		while(pos < 32)
 		{
@@ -195,105 +233,19 @@ uint8* getPhoto(uint32 bytes)
 		addr += 32;
 	}
 
-	return photo;
-}
-/*
-uint8* getPhoto(uint32 bytes)
-{
-	uint32 addr = 0;
-	uint8 command[20];
-	uint8 start = 0;
-	uint8 return_command[40];
-	uint32 return_length;
-	uint8* photo = malloc(bytes*sizeof(uint8));
-	uint32 photo_pos = 0;
-	command[0] = CMD_SEND;
-	command[1] = SERIAL_NUM;
-	command[2] = CMD_READBUFF;
-	command[3] = 0x0C;
-	command[4] = FBUF_CURRENTFRAME;
-	command[5] = 0x0A;
-
-	while (addr < bytes + 32)
-	{
-		if (start == 0)
-		{
-			command[6] = (addr >> 24) & 0xFF;
-			command[7] = (addr >> 16) & 0xFF;
-			command[8] = (addr >> 8) & 0xFF;
-			command[9] = addr & 0xFF;
-			command[10] = 0x00;
-			command[11] = 0x00;
-			command[12] = 0x00;
-			command[13] = 0x20;
-			command[14] = 0x00;
-			command[15] = 0x00;
-			uart2Tx((uint8*) command,16);
-		}
-
-		int8 c = uart2Getchar();
-		return_length = 0;
-		while(c != -1 && return_length < 37)
-		{
-			return_command[return_length++] = c;
-			c = uart2Getchar();
-		}
-		if (return_length != 32)
-		{
-			if (return_length == 5 && start == 0)
-			{
-				start = 1;
-			}
-			else if (return_length == 5 && start == 1)
-			{
-				start = 0;
-			}
-			continue;
-		}
-		if (!checkReply(return_command, CMD_READBUFF))
-			return 0;
-		uint8 pos = 5;
-		while(pos < 32)
-		{
-			photo[photo_pos++] = return_command[pos++];
-		}
-		addr += 32;
-	}
+	//TODO: save photo to memory
 
 	return photo;
 }
-*/
-/*
-uint8 getPhoto(uint32 bytes, uint8** photo)
-{
-	uint8 command[20];
-	uint8 return_command[5];
 
-	command[0] = CMD_SEND;
-	command[1] = SERIAL_NUM;
-	command[2] = CMD_READBUFF;
-	command[3] = 0x0C;
-	command[4] = FBUF_CURRENTFRAME;
-	command[5] = 0x0A;
-	command[6] = 0x00;
-	command[7] = 0x00;
-	command[8] = 0x00;
-	command[9] = 0x00;
-	command[10] = (bytes >> 24) & 0xFF;
-	command[11] = (bytes >> 16) & 0xFF;
-	command[12] = (bytes >> 8) & 0xFF;
-	command[13] = bytes & 0xFF;
-	command[14] = 0x00;
-	command[15] = 0x00;
-	uart2Tx((uint8*) command,16);
 
-	uart2Rx((uint8*)&return_command,5);
-	uart2Rx((uint8*)&photo,bytes);
-	uart2Rx((uint8*)&return_command,5);
 
-	if (!checkReply(return_command, CMD_READBUFF))
-		return 0;
+void takePhoto(void) {
 
-	return 1;
+	stopFrame();
+	uint32 len = getBufferLength();
+	getPhoto(len);
+	resumeFrame();
+
 }
-*/
+
