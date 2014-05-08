@@ -305,6 +305,7 @@ void TIM_Waitms(uint32_t time);
 void TIM_Waits(uint32_t time);
 
 void startTimerInt(uint8_t matchRegister, uint32_t ticks);
+void stopTimerInt(uint8 matchReg);
 
 /**
  * @}

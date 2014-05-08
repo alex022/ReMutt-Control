@@ -28,7 +28,7 @@ int main(void) {
 	//Variable Declarations
 	TIM_TIMERCFG_Type timerCfg;
 
-	//Initialize timer for delays and interrupts
+	//Initialize timer0 for delays
 	TIM_ConfigStructInit(TIM_TIMER_MODE, &timerCfg);		/* initialize timer config struct */
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
 

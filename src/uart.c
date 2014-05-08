@@ -368,8 +368,7 @@ int8 uart2Rx (uint8 *rx, const uint32 size)
 			return 1;
 		}
 		*rx++ = LPC_UART2->RBR;
-    	LPC_TIM1->MCR &= 0xFFFFFFFE;
-
+		stopTimerInt(0);
 	}
 	return 0;
 }

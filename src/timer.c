@@ -600,38 +600,43 @@ void startTimerInt(uint8_t matchRegister, uint32_t us)
 
 }
 
+void stopTimerInt(uint8 matchReg)
+{
+	LPC_TIM1->MCR &= ~ ((uint32_t)(1<<(matchReg*3)));
+
+	if (LPC_TIM1->MCR & 0x249)
+	{
+		TIM_Cmd(LPC_TIM1, DISABLE);
+	}
+}
+
 void TIMER1_IRQHandler (void)
 {
     if(TIM_GetIntStatus(LPC_TIM1,TIM_MR0_INT)) // if MR0 interrupt
     {
     	printf("In IRQ MR0\n\r");
     	LPC_TIM1->IR |= 1<<0;
-    	LPC_TIM1->MCR &= 0xFFFFFFFE;
+    	stopTimerInt(0);
     	UartRx_interrupt = 1;
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR1_INT)) // if MR1 interrupt
     {
         printf("In IRQ MR1\n\r");
     	LPC_TIM1->IR |= 1<<1;
-    	LPC_TIM1->MCR &= 0xFFFFFFF7;
+    	stopTimerInt(1);
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR2_INT)) // if MR1 interrupt
     {
         printf("In IRQ MR2\n\r");
     	LPC_TIM1->IR |= 1<<2;
-    	LPC_TIM1->MCR &= 0xFFFFFFBF;
+    	stopTimerInt(2);
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR3_INT)) // if MR1 interrupt
     {
         printf("In IRQ MR3\n\r");
     	LPC_TIM1->IR |= 1<<3;
-    	LPC_TIM1->MCR &= 0xFFFFFDFF;
+    	stopTimerInt(3);
     }
-
-	if (LPC_TIM1->MCR & 0x249)
-	{
-		TIM_Cmd(LPC_TIM1, DISABLE);
-	}
 }
 /**
  * @}
