@@ -15,9 +15,10 @@
 /*==============================================================================
  Includes
 ==============================================================================*/
-# include "irq.h"
-# include "typedef.h"
-# include "gpdma.h"
+#include "irq.h"
+#include "typedef.h"
+#include "gpdma.h"
+#include "global.h"
 /*==============================================================================
  Defines
 ==============================================================================*/
@@ -106,7 +107,8 @@ struct uartDmaConf {
 void uart0Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
 void uart1Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
 void uart2Init    (const enum uartBaud baud, const enum uartStopBit stopBit, const enum uartParity parity);
-int uart1Getchar(void);
+int16 uart1Getchar(void);
+int16 uart2Getchar(void);
 /*------------------------------------------------------------------------------
  function name:		uartNTx/uartXRx
  description: 		UART RX/TX polling functions.
@@ -118,7 +120,7 @@ void uart0Rx      (uint8 *rx, const uint32 size);
 void uart1Tx      (const uint8 *tx, const uint32 size);
 void uart1Rx      (uint8 *rx, const uint32 size);
 void uart2Tx      (const uint8 *tx, const uint32 size);
-void uart2Rx      (uint8 *rx, const uint32 size);
+int8 uart2Rx      (uint8 *rx, const uint32 size);
 
 /*------------------------------------------------------------------------------
  function name:		uartNInitIrq
@@ -159,7 +161,7 @@ void uart1DisableIrqTx	(void);
 ------------------------------------------------------------------------------*/
 void uart0EnableIrqRx	(void);
 void uart1EnableIrqRx	(void);
-//void uart2EnableIrqRx	(void);
+void uart2EnableIrqRx	(void);
 
 /*------------------------------------------------------------------------------
  function name:		uart2InitDma
@@ -169,13 +171,13 @@ void uart1EnableIrqRx	(void);
 ------------------------------------------------------------------------------*/
 void uart0InitDma 		(const struct uartDmaConf *dma);
 void uart1InitDma 		(const struct uartDmaConf *dma);
-//void uart2InitDma 		(const struct uartDmaConf *dma);
+void uart2InitDma 		(const struct uartDmaConf *dma);
 void uart0DmaTx 		(const uint8 *tx, const uint32 size);
 void uart0DmaRx			(uint8 *rx, const uint32 size);
 void uart1DmaTx 		(const uint8 *tx, const uint32 size);
 void uart1DmaRx			(uint8 *rx, const uint32 size);
-//void uart2DmaTx 		(const uint8 *tx, const uint32 size);
-//void uart2DmaRx			(uint8 *rx, const uint32 size);
+void uart2DmaTx 		(const uint8 *tx, const uint32 size);
+void uart2DmaRx			(uint8 *rx, const uint32 size);
 
 /*------------------------------------------------------------------------------
  function name:		uart0PutChar

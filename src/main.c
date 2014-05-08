@@ -24,19 +24,27 @@
 #include "wifi.h"
 
 //Testing
-
 int main(void) {
 	//Variable Declarations
+	TIM_TIMERCFG_Type timerCfg;
+
+	//Initialize timer for delays and interrupts
+	TIM_ConfigStructInit(TIM_TIMER_MODE, &timerCfg);		/* initialize timer config struct */
+	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
 
 	// Initialize Peripherals
-	servoInit();							/* initialize FSR servo motor for panning camera */
-	initStepper();							/* initialize stepper motor for dispensing food */
-	initFSR();								/* initialize force sensitive resistor circuit for food and water full signals */
-	initWiFi(AUTO_CONNECT);					/* initialize WiFi module */
-	cameraInit();							/* initialize camera communication */
+	servoInit();										/* initialize FSR servo motor for panning camera */
+	initStepper();										/* initialize stepper motor for dispensing food */
+	initFSR();											/* initialize force sensitive resistor circuit for food and water full signals */
+	//initWiFi(AUTO_CONNECT);							/* initialize WiFi module -- must be attached*/
+
+	if(cameraInit())
+		printf("Camera not initialized!\n\r");			/* initialize camera communication */
+
 
 	// Enter an infinite loop
     while(1) {
+
 
     }
     return 0;

@@ -10,6 +10,8 @@
 
 #include "uart.h"
 #include <stdlib.h>
+#include "global.h"
+#include "timer.h"
 
 #define SERIAL_NUM				0x00
 
@@ -35,10 +37,10 @@ uint8 setUartSpeed(const enum uartBaud baud);
 uint8 cameraReset();
 uint8 cameraInit();
 uint8 getVersion();
-void takePhoto();
+uint8 takePhoto();
 uint8 stopFrame();
 uint8 resumeFrame();
 uint32 getBufferLength();
-uint8* getPhoto(uint32 bytes);
+uint8 getAndStorePhoto(uint32 bytes);
 
 #endif /* CAMERA_H_ */

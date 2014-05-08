@@ -13,13 +13,14 @@
 /*==============================================================================
  Includes
 ==============================================================================*/
-# include <string.h>
-# include "LPC177x_8x.h"
-# include "hdr_sc.h"
-# include "macros.h"
-# include "init.h"
-# include "gpdma.h"
-# include "uart.h"
+#include <string.h>
+#include "LPC177x_8x.h"
+#include "hdr_sc.h"
+#include "macros.h"
+#include "init.h"
+#include "gpdma.h"
+#include "uart.h"
+#include "timer.h"
 
 /*==============================================================================
  Defines
@@ -210,7 +211,7 @@ void uart2Init (const enum uartBaud baud, const enum uartStopBit stopBit, const 
 	 * 8 bit character, 1 bit stop, none parity */
 	LPC_UART2->LCR = LCR_WORD_LENGTH_SELECT_8BIT | stopBit | parity | LCR_DLAB;
     /* set divisor latches DLL, DLM */
-    div = (SYSTEM_FREQUENCY / UART2_BASE_DIV) / baud;
+    div = (SYSTEM_FREQUENCY / UART2_BASE_DIV) / baud / 2;
     LPC_UART2->DLM = div / 256;
     LPC_UART2->DLL = div % 256;
     /* clear DLAB to disable DLL, DLM- now RBR, THR and IER are accessible */
@@ -251,14 +252,14 @@ void uart0Tx (const uint8 *tx, const uint32 size)
 void uart0Rx (uint8 *rx, const uint32 size)
 {
 	uint32 i;
-	int retval;
+	uint8 retval;
 	i = size;
 	for (i = 0; i < size; ++i)
 	{
 		while (!(LPC_UART0->LSR & LSR_RECEIVER_DATA_READY)){
-			retval = uart1Getchar();			/* used to receive input from the WiFi module, can comment out */
-	    	if(retval != -1)
-	    		printf("%c", retval);
+			//retval = uart1Getchar();			/* used to receive input from the WiFi module, can comment out */
+	    	//if(retval != -1)
+	    		//printf("%c", retval);
 		}
 		*rx++ = LPC_UART0->RBR;
 	}
@@ -306,9 +307,8 @@ void uart1PutChar (char character)
 	LPC_UART1->THR = character;
 }
 
-int uart1Getchar(void)
+int16 uart1Getchar(void)
 {
-	int i;
 	if (LPC_UART1->LSR & LSR_RECEIVER_DATA_READY)                 // check if character is available
 	{
 		//uart0Putch('#');
@@ -319,6 +319,15 @@ int uart1Getchar(void)
 	return -1;
 }
 
+int16 uart2Getchar(void)
+{
+	if (LPC_UART2->LSR & LSR_RECEIVER_DATA_READY)                 // check if character is available
+	{
+		return LPC_UART2->RBR;                     // return character
+	}
+
+	return -1;
+}
 /*------------------------------------------------------------------------------
  function name:		uart2Tx
  description: 		send characters by uart 2
@@ -341,18 +350,28 @@ void uart2Tx (const uint8 *tx, const uint32 size)
  function name:		uart2Rx
  description: 		get characters from uart 0
  parameters:   		pointer to RX buffer, size
- returned value:	none
+ returned value:	-1 if timer interrupted
+ 	 	 	 	 	 0 if okay
 ------------------------------------------------------------------------------*/
-void uart2Rx (uint8 *rx, const uint32 size)
+int8 uart2Rx (uint8 *rx, const uint32 size)
 {
 	uint32 i;
 
 	i = size;
 	for (i = 0; i < size; ++i)
 	{
-		while (!(LPC_UART2->LSR & LSR_RECEIVER_DATA_READY));
+		startTimerInt(0,20000);
+		while (!(LPC_UART2->LSR & LSR_RECEIVER_DATA_READY) && (!UartRx_interrupt));
+		if (UartRx_interrupt)
+		{
+			UartRx_interrupt = 0;
+			return 1;
+		}
 		*rx++ = LPC_UART2->RBR;
+    	LPC_TIM1->MCR &= 0xFFFFFFFE;
+
 	}
+	return 0;
 }
 
 /*------------------------------------------------------------------------------
@@ -989,59 +1008,59 @@ void uart2InitDma (const struct uartDmaConf *dma)
 {
 	{
 		/* set UART TX GPDMA config struct */
-		uartDma[0].txConf.mode = gpdmaM2P;						/* memory to uart */
-		uartDma[0].txConf.srcWidth = gpdmaS_WIDTH8;
-		uartDma[0].txConf.dstWidth = gpdmaD_WIDTH8;			/* uart word width is 1 byte */
-		uartDma[0].txConf.sbSize = gpdmaSB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
-		uartDma[0].txConf.dbSize = gpdmaDB_SIZE8;				/* uart has 16 byte TX/RX fifo */
-		uartDma[0].txConf.srcPeriph = 0;						/* if memory than 0 */
-		uartDma[0].txConf.dstPeriph = gpdmaDST_PERIPH_UART2TX;	/* uart 2 TX is destination */
-		uartDma[0].txConf.flowCtrl = gpdmaFLOW_CTRL_M2P_DMA;	/* dma is flow controller */
+		uartDma[2].txConf.mode = gpdmaM2P;						/* memory to uart */
+		uartDma[2].txConf.srcWidth = gpdmaS_WIDTH8;
+		uartDma[2].txConf.dstWidth = gpdmaD_WIDTH8;			/* uart word width is 1 byte */
+		uartDma[2].txConf.sbSize = gpdmaSB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
+		uartDma[2].txConf.dbSize = gpdmaDB_SIZE8;				/* uart has 16 byte TX/RX fifo */
+		uartDma[2].txConf.srcPeriph = 0;						/* if memory than 0 */
+		uartDma[2].txConf.dstPeriph = gpdmaDST_PERIPH_UART2TX;	/* uart 2 TX is destination */
+		uartDma[2].txConf.flowCtrl = gpdmaFLOW_CTRL_M2P_DMA;	/* dma is flow controller */
 		//uartDma[0].txConf.srcAddr = 							/* source is updated later */
-		uartDma[0].txConf.dstAddr = (uint32)&LPC_UART2->THR;
+		uartDma[2].txConf.dstAddr = (uint32)&LPC_UART2->THR;
 		if (dma->txEndService == 0)
 		{
-			uartDma[0].txConf.transferEndService = dummyService;
+			uartDma[2].txConf.transferEndService = dummyService;
 		}
 		else
 		{
-			uartDma[0].txConf.transferEndService = dma->txEndService;
+			uartDma[2].txConf.transferEndService = dma->txEndService;
 		}
 		if (dma->error == 0)
 		{
-			uartDma[0].txConf.errorService = dummyService;
+			uartDma[2].txConf.errorService = dummyService;
 		}
 		else
 		{
-			uartDma[0].txConf.errorService = dma->error;
+			uartDma[2].txConf.errorService = dma->error;
 		}
 
 		/* set UART RX GPDMA config struct */
-		uartDma[0].rxConf.mode = gpdmaP2M;						/* memory to uart */
-		uartDma[0].rxConf.srcWidth = gpdmaS_WIDTH8;			/* uart word width is 1 byte */
-		uartDma[0].rxConf.dstWidth = gpdmaD_WIDTH8;
-		uartDma[0].rxConf.sbSize = gpdmaSB_SIZE8;				/* uart has 16 byte TX/RX fifo */
-		uartDma[0].rxConf.dbSize = gpdmaDB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
-		uartDma[0].rxConf.srcPeriph = gpdmaSRC_PERIPH_UART2RX;	/* uart 0 RX is source */
-		uartDma[0].rxConf.dstPeriph = 0;						/* if memory than 0 */
-		uartDma[0].rxConf.flowCtrl = gpdmaFLOW_CTRL_P2M_DMA;	/* dma is flow controller */
-		uartDma[0].rxConf.srcAddr = (uint32)&LPC_UART2->RBR;
+		uartDma[2].rxConf.mode = gpdmaP2M;						/* memory to uart */
+		uartDma[2].rxConf.srcWidth = gpdmaS_WIDTH8;			/* uart word width is 1 byte */
+		uartDma[2].rxConf.dstWidth = gpdmaD_WIDTH8;
+		uartDma[2].rxConf.sbSize = gpdmaSB_SIZE8;				/* uart has 16 byte TX/RX fifo */
+		uartDma[2].rxConf.dbSize = gpdmaDB_SIZE4;				/* internal GPDMA fifo is 4 word deep */
+		uartDma[2].rxConf.srcPeriph = gpdmaSRC_PERIPH_UART2RX;	/* uart 0 RX is source */
+		uartDma[2].rxConf.dstPeriph = 0;						/* if memory than 0 */
+		uartDma[2].rxConf.flowCtrl = gpdmaFLOW_CTRL_P2M_DMA;	/* dma is flow controller */
+		uartDma[2].rxConf.srcAddr = (uint32)&LPC_UART2->RBR;
 		//uartDma[0].rxConf.dstAddr = 							/* dst is updated later */
 		if (dma->rxEndService == 0)
 		{
-			uartDma[0].rxConf.transferEndService = dummyService;
+			uartDma[2].rxConf.transferEndService = dummyService;
 		}
 		else
 		{
-			uartDma[0].rxConf.transferEndService = dma->rxEndService;
+			uartDma[2].rxConf.transferEndService = dma->rxEndService;
 		}
 		if (dma->error == 0)
 		{
-			uartDma[0].rxConf.errorService = dummyService;
+			uartDma[2].rxConf.errorService = dummyService;
 		}
 		else
 		{
-			uartDma[0].rxConf.errorService = dma->error;
+			uartDma[2].rxConf.errorService = dma->error;
 		}
 
 	    /* turn on reset and configure fifo, enable DMA support */

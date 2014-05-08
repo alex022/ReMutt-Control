@@ -9,27 +9,26 @@
 uint8 checkReply(uint8* r, uint8 c)
 {
 	if (r[0] == CMD_REPLY && r[1] == SERIAL_NUM && r[2] == c && r[3] == 0x00)
-		return 1;
-	return 0;
+		return 0;
+	return 1;
 }
 
 uint8 cameraInit()
 {
-	uint8 return_command[5];
-
 	uart2Init(uartBAUD38400, uartSTOP_BIT_1, uartPARITY_DISABLE);
-	if (!cameraReset())
-		return 0; //Should work but might not
-	setUartSpeed(uartBAUD115200);
+	//if (cameraReset())  //Doesn't work but might not
+	//	return 1;
+	if(setUartSpeed(uartBAUD115200))
+		return 1;
 
-	return 1;
+	return 0;
 }
 
 uint8 setUartSpeed(const enum uartBaud baud)
 {
 	uint8 command[10];
 	uint8 return_command[10];
-
+	uint8 error = 0;
 	command[0] = CMD_SEND;
 	command[1] = SERIAL_NUM;
 	command[2] = CMD_SET;
@@ -59,18 +58,19 @@ uint8 setUartSpeed(const enum uartBaud baud)
 			command[6] = 0xA6;
 			break;
 		default:
-			return 0;
+			return 1;
 	}
 
 	uart2Tx((uint8*) command,7);
-	uart2Rx((uint8*)&return_command,5);
 
-	if (checkReply(return_command, CMD_SET))
+	error = uart2Rx((uint8*)&return_command,5);
+
+	if (!(checkReply(return_command, CMD_SET) || error))
 	{
 		uart2Init(baud, uartSTOP_BIT_1, uartPARITY_DISABLE);
-		return 1;
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 
@@ -78,7 +78,7 @@ uint8 cameraReset()
 {
 	uint8 command[5];
 	uint8 return_command[10];
-
+	uint8 error = 0;
 	//stop frame update
 	command[0] = CMD_SEND;
 	command[1] = SERIAL_NUM;
@@ -86,19 +86,20 @@ uint8 cameraReset()
 	command[3] = CMD_END;
 	uart2Tx((uint8*) command,4);
 
-	uart2Rx((uint8*)&return_command,5);
+	error = uart2Rx((uint8*)&return_command,5);
 
-	//TODO: might need to fix number received and implement delay
+	TIM_Waitms(100);
 
-	if (checkReply(return_command, CMD_RESET))
-		return 1;
-	return 0;
+	if (!(checkReply(return_command, CMD_RESET) || error))
+		return 0;
+	return 1;
 }
 
 uint8 getVersion()
 {
 	uint8 command[5];
 	uint8 return_command[20];
+	uint8 error = 0;
 
 	//stop frame update
 	command[0] = CMD_SEND;
@@ -107,16 +108,17 @@ uint8 getVersion()
 	command[3] = CMD_END;
 	uart2Tx((uint8*) command,4);
 
-	uart2Rx((uint8*)&return_command,16);
-	if (checkReply(return_command, CMD_GETVERSION))
-		return 1;
-	return 0;
+	error = uart2Rx((uint8*)&return_command,16);
+	if (!(checkReply(return_command, CMD_GETVERSION) || (error)))
+		return 0;
+	return 1;
 }
 
 uint8 stopFrame()
 {
 	uint8 command[5];
 	uint8 return_command[10];
+	uint8 error;
 
 	//stop frame update
 	command[0] = CMD_SEND;
@@ -126,18 +128,18 @@ uint8 stopFrame()
 	command[4] = FBUF_STOPCURRENTFRAME;
 	uart2Tx((uint8*) command,5);
 
-	uart2Rx((uint8*)&return_command,5);
+	error = uart2Rx((uint8*)&return_command,5);
 
-	if (checkReply(return_command, CMD_TAKEPHOTO) && return_command[4] == 0x00)
-		return 1;
-	return 0;
+	if (!(checkReply(return_command, CMD_TAKEPHOTO) || !(return_command[4] == 0x00) || error))
+		return 0;
+	return 1;
 }
 
 uint8 resumeFrame()
 {
 	uint8 command[5];
 	uint8 return_command[10];
-
+	uint8 error = 0;
 	//stop frame update
 	command[0] = CMD_SEND;
 	command[1] = SERIAL_NUM;
@@ -146,11 +148,11 @@ uint8 resumeFrame()
 	command[4] = FBUF_RESUMEFRAME;
 	uart2Tx((uint8*) command,5);
 
-	uart2Rx((uint8*)&return_command,5);
+	error = uart2Rx((uint8*)&return_command,5);
 
-	if (checkReply(return_command, CMD_TAKEPHOTO) && return_command[4] == 0x00)
-		return 1;
-	return 0;
+	if (!(checkReply(return_command, CMD_TAKEPHOTO) || !(return_command[4] == 0x00) || error))
+		return 0;
+	return 1;
 }
 
 uint32 getBufferLength()
@@ -158,6 +160,7 @@ uint32 getBufferLength()
 	uint32 length = 0;
 	uint8 command[5];
 	uint8 return_command[10];
+	uint8 error = 0;
 
 	command[0] = CMD_SEND;
 	command[1] = SERIAL_NUM;
@@ -166,7 +169,7 @@ uint32 getBufferLength()
 	command[4] = FBUF_CURRENTFRAME;
 	uart2Tx((uint8*) command,5);
 
-	uart2Rx((uint8*)&return_command,9);
+	error = uart2Rx((uint8*)&return_command,9);
 
 	length = return_command[5];
 	length = length << 8;
@@ -176,12 +179,12 @@ uint32 getBufferLength()
 	length = length << 8;
 	length += return_command[8];
 
-	if(checkReply(return_command, CMD_GETBUFFLEN) && return_command[4] == 0x04)
+	if(!(checkReply(return_command, CMD_GETBUFFLEN) || !(return_command[4] == 0x04) || error))
 		return length;
 	return 0;
 }
 
-uint8* getPhoto(uint32 bytes)
+uint8 getAndStorePhoto(uint32 bytes)
 {
 	uint32 addr = 0;
 	uint8 command[20];
@@ -189,6 +192,7 @@ uint8* getPhoto(uint32 bytes)
 	uint8* photo = malloc(bytes*sizeof(uint8));
 	uint32 photo_pos = 0;
 	uint8 photo_data[32];
+	uint8 error = 0;
 
 	command[0] = CMD_SEND;
 	command[1] = SERIAL_NUM;
@@ -214,16 +218,28 @@ uint8* getPhoto(uint32 bytes)
 
 		uart2Tx((uint8*) command,16);
 
-		uart2Rx((uint8*)&return_command,5);
+		error = uart2Rx((uint8*)&return_command,5);
 
-		if (!checkReply(return_command, CMD_READBUFF))
-			return 0;
+		if (checkReply(return_command, CMD_READBUFF) || error)
+		{
+			printf("error in ack 1!\n\r");
+			return 1;
+		}
+		error = uart2Rx((uint8*)&photo_data, 32);
 
-		uart2Rx((uint8*)&photo_data, 32);
-		uart2Rx((uint8*)&return_command,5);
+		if (error)
+		{
+			printf("error in data!\n\r");
+			return 1;
+		}
 
-		if (!checkReply(return_command, CMD_READBUFF))
-			return 0;
+		error = uart2Rx((uint8*)&return_command,5);
+
+		if (checkReply(return_command, CMD_READBUFF) || error)
+		{
+			printf("error in ack 2!\n\r");
+			return 1;
+		}
 
 		uint8 pos = 0;
 		while(pos < 32)
@@ -234,18 +250,38 @@ uint8* getPhoto(uint32 bytes)
 	}
 
 	//TODO: save photo to memory
-
-	return photo;
+	free(photo);
+	return 0;
 }
 
 
 
-void takePhoto(void) {
+uint8 takePhoto(void) {
 
-	stopFrame();
+	uint8 error = stopFrame();
+	if (error)
+	{
+		printf("stopFrame error!\n\r");
+		return 1;
+	}
 	uint32 len = getBufferLength();
-	getPhoto(len);
-	resumeFrame();
-
+	if (len == 0)
+	{
+		printf("getBufferLength error!\n\r");
+		return 1;
+	}
+	error = getAndStorePhoto(len);
+	if (error)
+	{
+		printf("getAndStorePhoto error!\n\r");
+		return 1;
+	}
+	error = resumeFrame();
+	if (error)
+	{
+		printf("resumeFrame error!\n\r");
+		return 1;
+	}
+	return 0;
 }
 
