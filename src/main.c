@@ -22,6 +22,35 @@
 #include "camera.h"
 #include "ssp.h"
 #include "wifi.h"
+#include "sdram.h"
+
+//SPI main = Daniel's Property
+/*int main(void) {
+	SSP_CFG_Type SSP_ConfigStruct;
+
+	GPIOSetDir(1,8,GPIO_OUTPUT);
+	GPIOSetValue(1,8,0);
+	GPIOSetDir(1,14,GPIO_OUTPUT);
+	GPIOSetValue(1,14,1);
+
+	SSP_ConfigStructInit(&SSP_ConfigStruct);
+	SSP_Init(LPC_SSP2, &SSP_ConfigStruct);
+	SSP_Cmd(LPC_SSP2, ENABLE);
+	SSP_SendData(LPC_SSP2, 'a');
+	SSP_SendData(LPC_SSP2, 'b');
+	SSP_SlaveOutputCmd(LPC_SSP2, ENABLE);
+	SSP_ReceiveData(LPC_SSP2);
+
+	EMC_DYN_MEM_Config_Type EMC_ConfigStruct;
+
+	DynMem_Init(&EMC_ConfigStruct);
+	//EMC_Init();
+
+	// Enter an infinite loop
+	   while(1) {
+	   }
+	   return 0;
+}*/
 
 //Testing
 int main(void) {
