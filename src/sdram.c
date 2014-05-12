@@ -16,6 +16,7 @@
 #include "uart.h"
 #include "sdram.h"
 #include "clkpwr.h"
+#include "pinsel.h"
 
 uint32_t EMC_SDRAM_REFRESH(uint32_t time)
 {
@@ -35,7 +36,11 @@ uint32_t EMC_NS2CLK(uint32_t time){
  **********************************************************************/
 EMC_FUNC_CODE EMC_PwrOn(void)
 {
-    CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 0); // Same clock as CPU
+	if(CLKPWR_GetCLK(CLKPWR_CLKTYPE_CPU) > 80000000) {
+		CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 1); // CPU clock / 2
+	} else {
+		CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 0); // Same clock as CPU
+	}
 
     // Power on
     CLKPWR_ConfigPPWR(CLKPWR_PCONP_PCEMC, ENABLE);
@@ -53,7 +58,13 @@ EMC_FUNC_CODE EMC_PwrOn(void)
  **********************************************************************/
 EMC_FUNC_CODE DynMem_Init(EMC_DYN_MEM_Config_Type* pConfig)
 {
+	 uint32_t i = 0;
      EMC_FUNC_CODE ret = EMC_FUNC_OK;
+
+     LPC_SC->PCONP       |= 0x00000800; //Turn on EMC PCLK
+	 LPC_SC->EMCDLYCTL   = 0x00001010;
+	 LPC_EMC->Control     = 0x00000001; //Disable Address mirror
+	 LPC_EMC->Config      = 0x00000000;
 
      /* Pin Configuration
      * P2.16 - EMC_CAS
@@ -73,87 +84,30 @@ EMC_FUNC_CODE DynMem_Init(EMC_DYN_MEM_Config_Type* pConfig)
      *
      * P4.25 - EMC_WE
      */
-     LPC_IOCON->P2_16 = 0;
-     LPC_IOCON->P2_16 = SET_BIT(0);
-     LPC_IOCON->P2_17 = 0;
-     LPC_IOCON->P2_17 = SET_BIT(0);
-     LPC_IOCON->P2_18 = 0;
-     LPC_IOCON->P2_18 = SET_BIT(0);
-     LPC_IOCON->P2_20 = 0;
-     LPC_IOCON->P2_20 = SET_BIT(0);
+     PINSEL_ConfigPin(2,16,1);
+	 PINSEL_ConfigPin(2,17,1);
+	 PINSEL_ConfigPin(2,18,1);
 
-     LPC_IOCON->P2_24 = 0;
-     LPC_IOCON->P2_24 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,20,1);
 
-     LPC_IOCON->P2_28 = 0;
-     LPC_IOCON->P2_28 = SET_BIT(0);
-     LPC_IOCON->P2_29 = 0;
-     LPC_IOCON->P2_29 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,24,1);
 
-     LPC_IOCON->P3_0 = 0;
-     LPC_IOCON->P3_0 = SET_BIT(0);
-     LPC_IOCON->P3_1 = 0;
-     LPC_IOCON->P3_1 = SET_BIT(0);
-     LPC_IOCON->P3_2 = 0;
-     LPC_IOCON->P3_2 = SET_BIT(0);
-     LPC_IOCON->P3_3 = 0;
-     LPC_IOCON->P3_3 = SET_BIT(0);
-     LPC_IOCON->P3_4 = 0;
-     LPC_IOCON->P3_4 = SET_BIT(0);
-     LPC_IOCON->P3_5 = 0;
-     LPC_IOCON->P3_5 = SET_BIT(0);
-     LPC_IOCON->P3_6 = 0;
-     LPC_IOCON->P3_6 = SET_BIT(0);
-     LPC_IOCON->P3_7 = 0;
-     LPC_IOCON->P3_7 = SET_BIT(0);
-     LPC_IOCON->P3_8 = 0;
-     LPC_IOCON->P3_8 = SET_BIT(0);
-     LPC_IOCON->P3_9 = 0;
-     LPC_IOCON->P3_9 = SET_BIT(0);
-     LPC_IOCON->P3_10 = 0;
-     LPC_IOCON->P3_10 = SET_BIT(0);
-     LPC_IOCON->P3_11 = 0;
-     LPC_IOCON->P3_11 = SET_BIT(0);
-     LPC_IOCON->P3_12 = 0;
-     LPC_IOCON->P3_12 = SET_BIT(0);
-     LPC_IOCON->P3_13 = 0;
-     LPC_IOCON->P3_13 = SET_BIT(0);
-     LPC_IOCON->P3_14 = 0;
-     LPC_IOCON->P3_14 = SET_BIT(0);
-     LPC_IOCON->P3_15 = 0;
-     LPC_IOCON->P3_15 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,28,1);
+	 PINSEL_ConfigPin(2,29,1);
 
-     LPC_IOCON->P4_0 = 0;
-     LPC_IOCON->P4_0 = SET_BIT(0);
-     LPC_IOCON->P4_1 = 0;
-     LPC_IOCON->P4_1 = SET_BIT(0);
-     LPC_IOCON->P4_2 = 0;
-     LPC_IOCON->P4_2 = SET_BIT(0);
-     LPC_IOCON->P4_3 = 0;
-     LPC_IOCON->P4_3 = SET_BIT(0);
-     LPC_IOCON->P4_4 = 0;
-     LPC_IOCON->P4_4 = SET_BIT(0);
-     LPC_IOCON->P4_5 = 0;
-     LPC_IOCON->P4_5 = SET_BIT(0);
-     LPC_IOCON->P4_6 = 0;
-     LPC_IOCON->P4_6 = SET_BIT(0);
-     LPC_IOCON->P4_7 = 0;
-     LPC_IOCON->P4_7 = SET_BIT(0);
-     LPC_IOCON->P4_8 = 0;
-     LPC_IOCON->P4_8 = SET_BIT(0);
-     LPC_IOCON->P4_9 = 0;
-     LPC_IOCON->P4_9 = SET_BIT(0);
-     LPC_IOCON->P4_10 = 0;
-     LPC_IOCON->P4_10 = SET_BIT(0);
-     LPC_IOCON->P4_11 = 0;
-     LPC_IOCON->P4_11 = SET_BIT(0);
-     LPC_IOCON->P4_13 = 0;
-     LPC_IOCON->P4_13 = SET_BIT(0);
-     LPC_IOCON->P4_14 = 0;
-     LPC_IOCON->P4_14 = SET_BIT(0);
+	 for(i = 0; i < 15; i++)
+	 {
+		 PINSEL_ConfigPin(3,i,1);
+	 }
 
-     LPC_IOCON->P4_25 = 0;
-     LPC_IOCON->P4_25 = SET_BIT(0);
+	 for(i = 0; i < 11; i++)
+	 {
+		 PINSEL_ConfigPin(4,i,1);
+	 }
+	 PINSEL_ConfigPin(4,13,1);
+	 PINSEL_ConfigPin(4,14,1);
+
+	 PINSEL_ConfigPin(4,25,1);
 
      // Power On
 	 ret |= EMC_PwrOn();
@@ -172,6 +126,13 @@ EMC_FUNC_CODE DynMem_Init(EMC_DYN_MEM_Config_Type* pConfig)
 	 ret |= EMC_DynCtrlClockEnable(EMC_DYNAMIC_CTRL_CE_ALLCLK_HI);
 	 ret |= EMC_DynCtrlMMC(EMC_DYNAMIC_CTRL_MMC_CLKOUT_ENABLED);
 	 ret |= EMC_DynCtrlClockControl(EMC_DYNAMIC_CTRL_CE_CLKOUT_CONT);
+	 ret |= EMC_DynCtrlSDRAMInit(0x00000183); /* Mem clock enable, CLKOUT runs, send command: NOP */
+	 ret |= EMC_DynCtrlSDRAMInit(0x00000103); /* Send command: PRECHARGE-ALL, shortest possible refresh period */
+	 ret |= EMC_DynCtrlSDRAMInit(0x00000083); /* Mem clock enable, CLKOUT runs, send command: MODE */
+	 ret |= EMC_DynCtrlSDRAMInit(0x00000000); /* Send command: NORMAL */
+
+	 /*Buffer Enabled*/
+	 ret |= EMC_DynMemConfigB(pConfig->CSn, EMC_DYNAMIC_CFG_BUFF_ENABLED);
 
 	 /* Timing */
 	 ret |= EMC_SetDynMemoryParameter(EMC_DYN_MEM_REFRESH_TIMER, pConfig->RefreshTime);
@@ -203,11 +164,17 @@ EMC_FUNC_CODE DynMem_Init(EMC_DYN_MEM_Config_Type* pConfig)
  **********************************************************************/
 EMC_FUNC_CODE EMC_Init(void)
 {
-    CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 0); // Same clock as CPU
+	uint8_t i;
 
-    LPC_SC->PCONP       |= 0x00000800;
+	if(CLKPWR_GetCLK(CLKPWR_CLKTYPE_CPU) > 80000000) {
+		CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 1); // CPU clock / 2
+	} else {
+		CLKPWR_SetCLKDiv(CLKPWR_CLKTYPE_EMC, 0); // Same clock as CPU
+	}
+
+    LPC_SC->PCONP       |= 0x00000800; //Turn on EMC PCLK
     LPC_SC->EMCDLYCTL   = 0x00001010;
-    LPC_EMC->Control     = 0x00000001;
+    LPC_EMC->Control     = 0x00000001; //Disable Address mirror
     LPC_EMC->Config      = 0x00000000;
 
     /* Pin Configuration
@@ -228,88 +195,53 @@ EMC_FUNC_CODE EMC_Init(void)
     *
     * P4.25 - EMC_WE
     */
-    LPC_IOCON->P2_16 = 0;
-    LPC_IOCON->P2_16 = SET_BIT(0);
-    LPC_IOCON->P2_17 = 0;
-    LPC_IOCON->P2_17 = SET_BIT(0);
-    LPC_IOCON->P2_18 = 0;
-    LPC_IOCON->P2_18 = SET_BIT(0);
-    LPC_IOCON->P2_20 = 0;
-    LPC_IOCON->P2_20 = SET_BIT(0);
+     PINSEL_ConfigPin(2,16,1);
+	 PINSEL_ConfigPin(2,17,1);
+	 PINSEL_ConfigPin(2,18,1);
 
-    LPC_IOCON->P2_24 = 0;
-    LPC_IOCON->P2_24 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,20,1);
 
-    LPC_IOCON->P2_28 = 0;
-    LPC_IOCON->P2_28 = SET_BIT(0);
-    LPC_IOCON->P2_29 = 0;
-    LPC_IOCON->P2_29 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,24,1);
 
-    LPC_IOCON->P3_0 = 0;
-    LPC_IOCON->P3_0 = SET_BIT(0);
-    LPC_IOCON->P3_1 = 0;
-    LPC_IOCON->P3_1 = SET_BIT(0);
-    LPC_IOCON->P3_2 = 0;
-    LPC_IOCON->P3_2 = SET_BIT(0);
-    LPC_IOCON->P3_3 = 0;
-    LPC_IOCON->P3_3 = SET_BIT(0);
-    LPC_IOCON->P3_4 = 0;
-    LPC_IOCON->P3_4 = SET_BIT(0);
-    LPC_IOCON->P3_5 = 0;
-    LPC_IOCON->P3_5 = SET_BIT(0);
-    LPC_IOCON->P3_6 = 0;
-    LPC_IOCON->P3_6 = SET_BIT(0);
-    LPC_IOCON->P3_7 = 0;
-    LPC_IOCON->P3_7 = SET_BIT(0);
-    LPC_IOCON->P3_8 = 0;
-    LPC_IOCON->P3_8 = SET_BIT(0);
-    LPC_IOCON->P3_9 = 0;
-    LPC_IOCON->P3_9 = SET_BIT(0);
-    LPC_IOCON->P3_10 = 0;
-    LPC_IOCON->P3_10 = SET_BIT(0);
-    LPC_IOCON->P3_11 = 0;
-    LPC_IOCON->P3_11 = SET_BIT(0);
-    LPC_IOCON->P3_12 = 0;
-    LPC_IOCON->P3_12 = SET_BIT(0);
-    LPC_IOCON->P3_13 = 0;
-    LPC_IOCON->P3_13 = SET_BIT(0);
-    LPC_IOCON->P3_14 = 0;
-    LPC_IOCON->P3_14 = SET_BIT(0);
-    LPC_IOCON->P3_15 = 0;
-    LPC_IOCON->P3_15 = SET_BIT(0);
+	 PINSEL_ConfigPin(2,28,1);
+	 PINSEL_ConfigPin(2,29,1);
 
-    LPC_IOCON->P4_0 = 0;
-    LPC_IOCON->P4_0 = SET_BIT(0);
-    LPC_IOCON->P4_1 = 0;
-    LPC_IOCON->P4_1 = SET_BIT(0);
-    LPC_IOCON->P4_2 = 0;
-    LPC_IOCON->P4_2 = SET_BIT(0);
-    LPC_IOCON->P4_3 = 0;
-    LPC_IOCON->P4_3 = SET_BIT(0);
-    LPC_IOCON->P4_4 = 0;
-    LPC_IOCON->P4_4 = SET_BIT(0);
-    LPC_IOCON->P4_5 = 0;
-    LPC_IOCON->P4_5 = SET_BIT(0);
-    LPC_IOCON->P4_6 = 0;
-    LPC_IOCON->P4_6 = SET_BIT(0);
-    LPC_IOCON->P4_7 = 0;
-    LPC_IOCON->P4_7 = SET_BIT(0);
-    LPC_IOCON->P4_8 = 0;
-    LPC_IOCON->P4_8 = SET_BIT(0);
-    LPC_IOCON->P4_9 = 0;
-    LPC_IOCON->P4_9 = SET_BIT(0);
-    LPC_IOCON->P4_10 = 0;
-    LPC_IOCON->P4_10 = SET_BIT(0);
-    LPC_IOCON->P4_11 = 0;
-    LPC_IOCON->P4_11 = SET_BIT(0);
-    LPC_IOCON->P4_13 = 0;
-    LPC_IOCON->P4_13 = SET_BIT(0);
-    LPC_IOCON->P4_14 = 0;
-    LPC_IOCON->P4_14 = SET_BIT(0);
+	 for(i = 0; i < 15; i++)
+	 {
+		 PINSEL_ConfigPin(3,i,1);
+	 }
 
-    LPC_IOCON->P4_25 = 0;
-    LPC_IOCON->P4_25 = SET_BIT(0);
+	 for(i = 0; i < 11; i++)
+	 {
+		 PINSEL_ConfigPin(4,i,1);
+	 }
+	 PINSEL_ConfigPin(4,13,1);
+	 PINSEL_ConfigPin(4,14,1);
 
+	 PINSEL_ConfigPin(4,25,1);
+
+    return EMC_FUNC_OK;
+}
+
+/*********************************************************************//**
+ * @brief         Issue SDRAM command
+ *
+ * @param[in]    SDRAM_command    Command mode, should be:
+ *
+ *                - EMC_DYNAMIC_CTRL_SDRAM_NORMAL: Issue SDRAM NORMAL operation command
+ *
+ *                - EMC_DYNAMIC_CTRL_SDRAM_MODE: Issue SDRAM MODE command
+ *
+ *                - EMC_DYNAMIC_CTRL_SDRAM_PALL: Issue SDRAM PALL (precharge all) command
+ *
+ *                - EMC_DYNAMIC_CTRL_SDRAM_NOP: Issue SRAM NOP (no operation) command
+ *
+ * @return         EMC_FUNC_OK
+ **********************************************************************/
+EMC_FUNC_CODE EMC_DynCtrlSDRAMInit(uint32_t SDRAM_command)
+{
+    LPC_EMC->DynamicControl &= ~EMC_DYNAMIC_CTRL_SDRAM_INIT_BMASK;
+    LPC_EMC->DynamicControl |= SDRAM_command & EMC_DYNAMIC_CTRL_SDRAM_INIT_BMASK;
     return EMC_FUNC_OK;
 }
 
@@ -747,6 +679,48 @@ uint8_t data_bus_width, uint16_t chip_size)
             break;
         default:
             return EMC_FUNC_INVALID_PARAM;
+    }
+    return EMC_FUNC_OK;
+}
+
+/*********************************************************************//**
+ * @brief         Enable/disable the buffer
+ *
+ * @param[in]    index index number, should be from 0 to 3
+ *
+ * @param[in]     buff_control buffer control mode, should be:
+ *
+ *                - EMC_DYNAMIC_CFG_BUFF_DISABLED: buffer is disabled
+ *
+ *                - EMC_DYNAMIC_CFG_BUFF_ENABLED: buffer is enable
+ *
+ * @return         EMC_FUNC_OK/EMC_FUNC_INVALID_PARAM
+ **********************************************************************/
+EMC_FUNC_CODE EMC_DynMemConfigB(uint32_t index , uint32_t buff_control)
+{
+    switch ( index)
+    {
+        case 0:
+            LPC_EMC->DynamicConfig0 &= ~EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            LPC_EMC->DynamicConfig0 |=  buff_control & EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            break;
+
+        case 1:
+            LPC_EMC->DynamicConfig1 &= ~EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            LPC_EMC->DynamicConfig1 |= buff_control& EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            break;
+
+        case 2:
+            LPC_EMC->DynamicConfig2 &= ~EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            LPC_EMC->DynamicConfig2 |= buff_control& EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            break;
+
+        case 3:
+            LPC_EMC->DynamicConfig3 &= ~EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            LPC_EMC->DynamicConfig3|= buff_control& EMC_DYNAMIC_CFG_BUFFENABLE_BMASK;
+            break;
+	default:
+	   return EMC_FUNC_INVALID_PARAM;
     }
     return EMC_FUNC_OK;
 }
