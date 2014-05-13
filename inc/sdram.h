@@ -505,6 +505,8 @@ typedef struct
 /** @defgroup EMC_Public_Functions EMC Public Functions
  * @{
  */
+ void PrintDataAtAddress(unsigned int Address);
+ void itoh(unsigned int x);
  uint32_t EMC_SDRAM_REFRESH(uint32_t time);
  uint32_t EMC_NS2CLK(uint32_t time);
  EMC_FUNC_CODE DynMem_Init(EMC_DYN_MEM_Config_Type* pConfig);

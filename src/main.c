@@ -25,32 +25,6 @@
 #include "sdram.h"
 #include "pinsel.h"
 
-void PrintDataAtAddress(unsigned int Address){
-	itoh(Address);
-	printf(" - ");
-	itoh(*(unsigned int*)((unsigned int)Address));
-	printf("\n\r");
-}
-
-void itoh(unsigned int x){
-	char HexData[9];
-	int counter = 7;
-	int i;
-	for(i = 0; i < 9; i++){
-		HexData[i] = '0';
-	}
-
-	char HexChars[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-	while(x != 0){
-		HexData[counter] = HexChars[x%16];
-		counter --;
-		x = x/16;
-	}
-
-	HexData[8] = 0x00;
-	printf("%s", HexData);
-}
-
 //Testing
 int main(void) {
 	//Variable Declarations
