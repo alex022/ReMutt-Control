@@ -725,66 +725,61 @@ EMC_FUNC_CODE EMC_DynMemConfigB(uint32_t index , uint32_t buff_control)
     return EMC_FUNC_OK;
 }
 
-/*unsigned int  SDRAM_Test (void)
+
+unsigned int SDRAM_Test(void)
 {
-	uart0Puts("SDRAM TEST\n\r");
   unsigned int i;
 
-  uart0Puts("32 bit Access\n\r");
   // 32 bits access
-  for (i = 0; i < 0x1000000; i+=sizeof(unsigned int))
+  /*for (i = 0; i < 0x1000000; i+=sizeof(unsigned int))
   {
-
-    *(unsigned int *)((unsigned int )SDRAM_BASE_ADDR+i) = i;
-    //PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-    //PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
+    *(unsigned int *)((unsigned int )0xA0000000+i) = i; //Write
+    PrintDataAtAddress((unsigned int)(0xA0000000+i)); //Read
   }
 
   for (i = 0; i < 0x1000000; i+=sizeof(unsigned int ))
   {
-    if (*(unsigned int *)((unsigned int )SDRAM_BASE_ADDR+i) != i)
+    if (*(unsigned int *)((unsigned int )0xA0000000+i) != i)
     {
-    	uart0Puts("32 bit Access Failed\n\r");
-    	PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-      return(FALSE);
+    	printf("32 bit Access Failed\n\r");
+    	PrintDataAtAddress((unsigned int)(0xA0000000+i));
+    	return(FALSE);
     }
-  }
-  uart0Puts("16 bit Access\n\r");
+  }*/
+
   // 16 bits access
-  for (i = 0; i < 0x10000; i+=sizeof(unsigned short))
+  /*for (i = 0; i < 0x10000; i+=sizeof(unsigned short))
   {
-	 // PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-    *(unsigned short*)((unsigned int)SDRAM_BASE_ADDR+i) = i;
-   //PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
+	  *(unsigned int *)((unsigned int )0xA0000000+i) = i; //Write
+	  PrintDataAtAddress((unsigned int)(0xA0000000+i)); //Read
   }
 
   for (i = 0; i < 0x10000; i+=sizeof(unsigned short))
   {
-    if (*(unsigned short*)((unsigned int)SDRAM_BASE_ADDR+i) != i)
+    if (*(unsigned short*)((unsigned int)0xA0000000+i) != i)
     {
-    	uart0Puts("16 bit Access Failed\n\r");
-    	PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-      return(FALSE);
+    	printf("16 bit Access Failed\n\r");
+		PrintDataAtAddress((unsigned int)(0xA0000000+i));
+		return(FALSE);
     }
-  }
+  }*/
 
   // 8 bits access
-  uart0Puts("8 bit Access\n\r");
-  for ( i = 0; i < 0x100; i+=sizeof(unsigned char))
+  /*for ( i = 0; i < 0x100; i+=sizeof(unsigned char))
   {
-	 // PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-    *(unsigned char*)((unsigned int)SDRAM_BASE_ADDR+i) = i;
-   // PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
+	  *(unsigned int *)((unsigned int )0xA0000000+i) = i; //Write
+	  PrintDataAtAddress((unsigned int)(0xA0000000+i)); //Read
   }
 
   for (i = 0; i < 0x100; i+=sizeof(unsigned char))
   {
-    if (*(unsigned char*)((unsigned int)SDRAM_BASE_ADDR+i) != i)
+    if (*(unsigned char*)((unsigned int)0xA0000000+i) != i)
     {
-    	PrintDataAtAddress((unsigned int)(SDRAM_BASE_ADDR+i));
-    	uart0Puts("8 bit Access\n\r");
-      return(FALSE);
+    	printf("8 bit Access Failed\n\r");
+		PrintDataAtAddress((unsigned int)(0xA0000000+i));
+		return(FALSE);
     }
-  }
+  }*/
+
   return(TRUE);
-}*/
+}
