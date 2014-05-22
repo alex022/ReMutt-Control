@@ -15,6 +15,8 @@
 #include "typedef.h"
 #include <stdio.h>
 #include "gpio.h"
+#include "timer.h"
+#include "fsr_circuit.h"
 
 /*==============================================================================
  Defines
@@ -69,5 +71,22 @@ int32 promptStep();
  returned value:	none
 ------------------------------------------------------------------------------*/
 void spinStepper(uint32 total_steps);
+
+/*------------------------------------------------------------------------------
+ function name:		motorOff
+ description: 		turns off all current to motor phases
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void motorOff();
+
+/*------------------------------------------------------------------------------
+ function name:		spinUntilFull
+ description: 		spins until full signal asserted
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void spinUntilFull();
+
 
 #endif /* STEPPER_MOTOR_H_ */

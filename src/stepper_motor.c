@@ -48,25 +48,25 @@ void setFullStep(uint8 step)
 {
 	switch (step)
 	{
-		case 0:
+		case 3:
 			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 1);
 			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 1);
 			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 0);
 			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 0);
 			break;
-		case 1:
+		case 2:
 			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 0);
 			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 1);
 			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 1);
 			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 0);
 			break;
-		case 2:
+		case 1:
 			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 0);
 			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 0);
 			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 1);
 			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 1);
 			break;
-		case 3:
+		case 0:
 			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 1);
 			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 0);
 			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 0);
@@ -104,22 +104,19 @@ int32 promptStep()
 
 /*------------------------------------------------------------------------------
  function name:		setFullStep
- description: 		spins stepper for 1000 steps
+ description: 		spins stepper for a certain number of steps
  parameters:		number of steps to spin
  returned value:	none
 ------------------------------------------------------------------------------*/
 void spinStepper(uint32 total_steps)
 {
-	uint8 i = 0;
 	uint8 step = 0;
 	uint32 j = 0;
 
 	while(j < total_steps)
 	{
-		for(i = 0; i < 100; i++)
-		{
-			printf(".");
-		}
+
+		TIM_Waitms(20);
 
 		setFullStep(step++);
 
@@ -127,5 +124,44 @@ void spinStepper(uint32 total_steps)
 			step = 0;
 		j++;
 	}
+	motorOff();
 }
 
+/*------------------------------------------------------------------------------
+ function name:		motorOff
+ description: 		turns off all current to motor
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void motorOff()
+{
+	GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 0);
+	GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 0);
+	GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 0);
+	GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 0);
+}
+
+/*------------------------------------------------------------------------------
+ function name:		spinUntilFull
+ description: 		spins until full signal asserted
+ parameters:		none
+ returned value:	none
+------------------------------------------------------------------------------*/
+void spinUntilFull()
+{
+	uint8 step = 0;
+	uint32 j = 0;
+
+	while(getLoadSignal(FOOD_FULL))
+	{
+
+		TIM_Waitms(20);
+
+		setFullStep(step++);
+
+		if (step == 4)
+			step = 0;
+		j++;
+	}
+	motorOff();
+}
