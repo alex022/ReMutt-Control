@@ -110,7 +110,7 @@ int32 promptStep()
 ------------------------------------------------------------------------------*/
 void spinStepper(uint32 total_steps)
 {
-	uint8 step = 0;
+	uint32 step = 0;
 	uint32 j = 0;
 
 	while(j < total_steps)
@@ -122,6 +122,31 @@ void spinStepper(uint32 total_steps)
 
 		if (step == 4)
 			step = 0;
+		j++;
+	}
+	motorOff();
+}
+
+/*------------------------------------------------------------------------------
+ function name:		reverseSpin
+ description: 		spins stepper in opposite direction for unjamming
+ parameters:		number of steps to spin
+ returned value:	none
+------------------------------------------------------------------------------*/
+void reverseSpin(uint32 total_steps)
+{
+	uint32 step = 0;
+	uint32 j = 0;
+
+	while(j < total_steps)
+	{
+
+		TIM_Waitms(20);
+
+		setFullStep(step--);
+
+		if (step == 0)
+			step = 4;
 		j++;
 	}
 	motorOff();
@@ -150,18 +175,20 @@ void motorOff()
 void spinUntilFull()
 {
 	uint8 step = 0;
-	uint32 j = 0;
+	uint16 total_steps = 0;
 
-	while(getLoadSignal(FOOD_FULL))
+	while(!getLoadSignal(FOOD_FULL))
 	{
 
 		TIM_Waitms(20);
+
+		if (total_steps++%1000 == 999)
+			reverseSpin(50);
 
 		setFullStep(step++);
 
 		if (step == 4)
 			step = 0;
-		j++;
 	}
 	motorOff();
 }

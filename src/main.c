@@ -24,6 +24,8 @@
 #include "wifi.h"
 #include "sdram.h"
 #include "pinsel.h"
+#include "solenoid.h"
+
 
 //Testing
 int main(void) {
@@ -33,7 +35,7 @@ int main(void) {
 
 	//Initialize timer0 for delays
 	TIM_ConfigStructInit(TIM_TIMER_MODE, &timerCfg);		/* initialize timer config struct */
-	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
+	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);			/* initialize timer0 */
 
 	// Initialize Peripherals
 	/*initialize SDRAM for memory */
@@ -41,7 +43,8 @@ int main(void) {
 	servoInit();										/* initialize FSR servo motor for panning camera */
 	initStepper();										/* initialize stepper motor for dispensing food */
 	initFSR();											/* initialize force sensitive resistor circuit for food and water full signals */
-	initWiFi(AUTO_CONNECT);							/* initialize WiFi module -- must be attached*/
+	initSolenoid();										/* initialize solenoid for dispensing water */
+	initWiFi(AUTO_CONNECT);								/* initialize WiFi module -- must be attached*/
 
 	if(cameraInit())
 		printf("Camera not initialized!\n\r");			/* initialize camera communication */
