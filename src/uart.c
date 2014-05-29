@@ -21,6 +21,7 @@
 #include "gpdma.h"
 #include "uart.h"
 #include "timer.h"
+#include "wifi.h"
 
 /*==============================================================================
  Defines
@@ -1315,92 +1316,21 @@ void UART0_IRQHandler (void)
 ------------------------------------------------------------------------------*/
 void UART1_IRQHandler (void)
 {
-	volatile uint32 status;
-	uint32 i;
-
-	status = LPC_UART1->IIR;
-
-	/* TX fifo empty */
-	if ((status & IIR_IRQ_ID_MASK) == IIR_THRE)
-	{
-		for (i = 0; i < uartPrivate[1].txBuffSize; ++i)
-		{
-			LPC_UART1->THR = uartPrivate[1].txBuff[i];		/* fill fifo */
+	int retval;
+	retval = uart1Getchar();
+	if(retval != -1){
+		printf("%c", retval);
+		if(retval == '*' || check_flag == 1){
+			if(retval == '*')
+				check_flag = (check_flag + 1) % 3;
+			buffer[iterator] = retval;
+			iterator = (iterator + 1) % WIFI_BUFF_SIZE;
 		}
-		uartPrivate[1].txIrqService();
-	}
-
-	/* timeout */
-	if ((status & IIR_IRQ_ID_MASK) == IIR_CTI)
-	{
-		u1buff[1] = LPC_UART1->RBR;
-		uartPrivate[1].rxBuff[1] = u1buff[1];
-		(*uartPrivate[1].timeout)();
-	}
-
-	/* received data available */
-	if ((status & IIR_IRQ_ID_MASK) == IIR_RDA)
-	{
-		switch (uartPrivate[1].rxTriggerLvl)
-		{
-		case uartTRIGER_LEVEL_1CHAR:
-			u1buff[1] = LPC_UART1->RBR;
-			uartPrivate[1].rxBuff[1] = u1buff[1];
-			break;
-
-		case uartTRIGER_LEVEL_4CHAR:
-			u1buff[0] = LPC_UART1->RBR;
-			u1buff[1] = LPC_UART1->RBR;
-			u1buff[2] = LPC_UART1->RBR;
-			u1buff[3] = LPC_UART1->RBR;
-			memcpy(uartPrivate[1].rxBuff, u1buff, 4);
-			break;
-
-		case uartTRIGER_LEVEL_8CHAR:
-			u1buff[0] = LPC_UART1->RBR;
-			u1buff[1] = LPC_UART1->RBR;
-			u1buff[2] = LPC_UART1->RBR;
-			u1buff[3] = LPC_UART1->RBR;
-			u1buff[4] = LPC_UART1->RBR;
-			u1buff[5] = LPC_UART1->RBR;
-			u1buff[6] = LPC_UART1->RBR;
-			u1buff[7] = LPC_UART1->RBR;
-			memcpy(uartPrivate[1].rxBuff, u1buff, 8);
-			break;
-
-		case uartTRIGER_LEVEL_14CHAR:
-			u1buff[0] = LPC_UART1->RBR;
-			u1buff[1] = LPC_UART1->RBR;
-			u1buff[2] = LPC_UART1->RBR;
-			u1buff[3] = LPC_UART1->RBR;
-			u1buff[4] = LPC_UART1->RBR;
-			u1buff[5] = LPC_UART1->RBR;
-			u1buff[6] = LPC_UART1->RBR;
-			u1buff[7] = LPC_UART1->RBR;
-			u1buff[8] = LPC_UART1->RBR;
-			u1buff[9] = LPC_UART1->RBR;
-			u1buff[10] = LPC_UART1->RBR;
-			u1buff[11] = LPC_UART1->RBR;
-			u1buff[12] = LPC_UART1->RBR;
-			u1buff[13] = LPC_UART1->RBR;
-			memcpy(uartPrivate[1].rxBuff, u1buff, 14);
-			break;
-
-		default:
-			u1buff[0] = LPC_UART1->RBR;
-			u1buff[1] = LPC_UART1->RBR;
-			u1buff[2] = LPC_UART1->RBR;
-			u1buff[3] = LPC_UART1->RBR;
-			u1buff[4] = LPC_UART1->RBR;
-			u1buff[5] = LPC_UART1->RBR;
-			u1buff[6] = LPC_UART1->RBR;
-			u1buff[7] = LPC_UART1->RBR;
-			memcpy(uartPrivate[1].rxBuff, u1buff, 8);
-			break;
+		if(check_flag == 2){
+			getMessage(buffer);
+			check_flag = (check_flag + 1) % 3;
 		}
-		(*uartPrivate[0].rxIrqService)();
 	}
-
 }
 
 
