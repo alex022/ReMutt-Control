@@ -9,6 +9,7 @@
 #define SOLENOID_H_
 
 #include "gpio.h"
+#include "fsr_circuit.h"
 
 #define SOLENOID_PORT	PORT4
 #define SOLENOID_PIN	19
@@ -16,5 +17,6 @@
 void initSolenoid();
 void solenoidOpen();
 void solenoidClose();
+void fillWater();
 
 #endif /* SOLENOID_H_ */

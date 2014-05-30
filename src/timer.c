@@ -614,26 +614,22 @@ void TIMER1_IRQHandler (void)
 {
     if(TIM_GetIntStatus(LPC_TIM1,TIM_MR0_INT)) // if MR0 interrupt
     {
-    	printf("In IRQ MR0\n\r");
     	LPC_TIM1->IR |= 1<<0;
     	stopTimerInt(0);
     	UartRx_interrupt = 1;
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR1_INT)) // if MR1 interrupt
     {
-        printf("In IRQ MR1\n\r");
     	LPC_TIM1->IR |= 1<<1;
     	stopTimerInt(1);
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR2_INT)) // if MR1 interrupt
     {
-        printf("In IRQ MR2\n\r");
     	LPC_TIM1->IR |= 1<<2;
     	stopTimerInt(2);
     }
     else if(TIM_GetIntStatus(LPC_TIM1,TIM_MR3_INT)) // if MR1 interrupt
     {
-        printf("In IRQ MR3\n\r");
     	LPC_TIM1->IR |= 1<<3;
     	stopTimerInt(3);
     }

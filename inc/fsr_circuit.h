@@ -14,6 +14,7 @@
 
 #include "gpio.h"
 #include "typedef.h"
+#include "timer.h"
 #include <stdio.h>
 
 /*==============================================================================
@@ -22,19 +23,15 @@
 
 /*Signal Ordering*/
 #define WATER_FULL		1
-#define WATER_EMPTY		2
-#define FOOD_FULL		3
+#define FOOD_FULL		2
 
 
 /*Signal Port/Pin Assignments*/
-#define WATER_FULL_SIG_PORT		PORT3
-#define WATER_FULL_SIG_PIN		29
-
-#define WATER_EMPTY_SIG_PORT	PORT3
-#define WATER_EMPTY_SIG_PIN		30
-
 #define FOOD_FULL_SIG_PORT		PORT3
 #define FOOD_FULL_SIG_PIN		31
+
+#define WATER_FULL_SIG_PORT		PORT3
+#define WATER_FULL_SIG_PIN		30
 
 /*DCP control signals*/
 #define FOOD_FULL_INC_PORT		PORT5
@@ -45,18 +42,11 @@
 #define FOOD_FULL_CS_PIN		2
 
 #define WATER_FULL_INC_PORT		PORT3
-#define WATER_FULL_INC_PIN		21
+#define WATER_FULL_INC_PIN		18
 #define WATER_FULL_UD_PORT		PORT3
-#define WATER_FULL_UD_PIN		22
+#define WATER_FULL_UD_PIN		19
 #define WATER_FULL_CS_PORT		PORT3
-#define WATER_FULL_CS_PIN		23
-
-#define WATER_EMPTY_INC_PORT	PORT3
-#define WATER_EMPTY_INC_PIN		18
-#define WATER_EMPTY_UD_PORT		PORT3
-#define WATER_EMPTY_UD_PIN		19
-#define WATER_EMPTY_CS_PORT		PORT3
-#define WATER_EMPTY_CS_PIN		20
+#define WATER_FULL_CS_PIN		20
 
 /*==============================================================================
  Types
