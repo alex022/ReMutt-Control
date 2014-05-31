@@ -307,6 +307,25 @@ uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx)
  * 				Return (-1) if error.
  * Note: This function can be used in both master and slave mode.
  ***********************************************************************/
+
+/************************************************************************
+ * SD Card SPI Function Definitions for Send and Receive                *
+ ***********************************************************************/
+uint8_t SD_SSP_SendData(uint8_t Data)
+{
+	LPC_SSP2->DR = SSP_DR_BITMASK(Data);
+	/* Wait for sending to complete */
+	while (LPC_SSP2->SR & SSP_SR_BSY);
+	/* Return the received value */
+	return (LPC_SSP2->DR);
+}
+
+uint8_t SD_SSP_ReceiveData()
+{
+	return SD_SSP_SendData(0xFF);
+}
+/************************************************************************/
+
 int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 						SSP_TRANSFER_Type xfType)
 {
