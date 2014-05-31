@@ -28,7 +28,13 @@ char buffer[WIFI_BUFF_SIZE];
 
 /* Enumeration for state */
 enum{
-	IDLE, CONNECTED
+	IDLE, 				/* IDLE state, currently no connections */
+	CONNECTED,			/* CONNECTED state, Android application is connected but currently doing nothing */
+	DISPENSING_FOOD,	/* CONNECTED state, performing a food dispense command */
+	DISPENSING_WATER,	/* CONNECTED state, performing a water dispense command */
+	CAPTURING,			/* CONNCETED state, performing a picture command */
+	TALKING, 			/* CONNCETED state, performing audio command */
+	SCHEDULING			/* CONNECTED state, performing schedule change */
 };
 
 /* Enumeration for message */
