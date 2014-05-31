@@ -36,6 +36,16 @@ enum{
 	START, OPEN, CLOSED
 };
 
+/* Enumeration for dispensing */
+enum{
+	DISPENSING_FOOD, DISPENSING_WATER
+};
+
+/* Enumeration for comm */
+enum{
+	CAPTURING, TALKING
+};
+
 /* Function prototypes */
 void initWiFi(int setting);
 void getMessage(char string[]);
