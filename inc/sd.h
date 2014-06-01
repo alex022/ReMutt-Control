@@ -46,6 +46,7 @@ typedef struct tagCARDCONFIG
 	uint8_t  ocr[4];		/* OCR */
 	uint8_t  cid[16];		/* CID */
 	uint8_t  csd[16];		/* CSD */
+	uint8_t  status[64];    /* Status */
 } CARDCONFIG;
 
 /* Public variables */
@@ -58,6 +59,11 @@ SD_BOOL     SD_Init (void);
 SD_BOOL     SD_ReadSector (uint32_t sect, uint8_t *buf, uint32_t cnt);
 SD_BOOL     SD_WriteSector (uint32_t sect, const uint8_t *buf, uint32_t cnt);
 SD_BOOL     SD_ReadConfiguration (void);
+uint8_t     SD_SendCommand (uint8_t cmd, uint32_t arg, uint8_t *buf, uint32_t len);
+uint8_t     SD_SendACommand (uint8_t cmd, uint32_t arg, uint8_t *buf, uint32_t len);
+SD_BOOL     SD_RecvDataBlock (uint8_t *buf, uint32_t len);
+SD_BOOL     SD_SendDataBlock (const uint8_t *buf, uint8_t tkn, uint32_t len) ;
+SD_BOOL     SD_WaitForReady (void);
 void        disk_timerproc (void);
 void SingleSector_RW_Test(void);
 void MultiSector_RW_Test(void);

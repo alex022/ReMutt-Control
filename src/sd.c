@@ -4,9 +4,8 @@
 
 /* Includes ------------------------------------------------------------------- */
 #include "ssp.h"
-#include "clkpwr.h"
 #include "gpio.h"
-#include "typedef.h"
+#include "diskio.h"
 #include "sd.h"
 
 /* Command definitions in SPI bus mode */
@@ -58,7 +57,6 @@ All these commands shall be preceded with APP_CMD (CMD55). */
 #define DISPLAY_SIZE    32
 
 /* data buffer */
-//uint8_t *buf = (uint8_t *)0x2007C000; // 16KB
 uint8_t buf[16340];
 uint32_t i;
 
@@ -68,19 +66,159 @@ CARDCONFIG CardConfig;      /* Card configuration */
 
 /* Local variables */
 static volatile uint32_t Timer1, Timer2;	/* 100Hz decrement timer stopped at zero (disk_timerproc()) */
+static volatile DSTATUS Stat = STA_NOINIT;	/* Disk status */
 
 /** Select the card */
 #define SD_Select()  do {GPIOSetValue(PORT1, 8, 0);} while(0)
 /** DeSelect the card */
 #define SD_DeSelect() do {GPIOSetValue(PORT1, 8, 1);SD_SSP_ReceiveData();} while(0)
 
-/* Local functions */
-SD_BOOL     SD_ReadConfiguration (void);
-uint8_t     SD_SendCommand (uint8_t cmd, uint32_t arg, uint8_t *buf, uint32_t len);
-uint8_t     SD_SendACommand (uint8_t cmd, uint32_t arg, uint8_t *buf, uint32_t len);
-SD_BOOL     SD_RecvDataBlock (uint8_t *buf, uint32_t len);
-SD_BOOL     SD_SendDataBlock (const uint8_t *buf, uint8_t tkn, uint32_t len) ;
-SD_BOOL     SD_WaitForReady (void);
+/*-----------------------------------------------------------------------*/
+/* Initialize Disk Drive                                                  */
+/*-----------------------------------------------------------------------*/
+DSTATUS disk_initialize (
+	BYTE drv		/* Physical drive number (0) */
+)
+{
+	if (drv) return STA_NOINIT;			/* Supports only single drive */
+//	if (Stat & STA_NODISK) return Stat;	/* No card in the socket */
+
+	if (SD_Init() && SD_ReadConfiguration())
+		Stat &= ~STA_NOINIT;
+
+	return Stat;
+}
+
+/*-----------------------------------------------------------------------*/
+/* Miscellaneous Functions                                               */
+/*-----------------------------------------------------------------------*/
+DRESULT disk_ioctl (
+	BYTE drv,		/* Physical drive number (0) */
+	BYTE ctrl,		/* Control code */
+	void *buff		/* Buffer to send/receive control data */
+)
+{
+	DRESULT res;
+	BYTE n, *ptr = buff;
+
+	if (drv) return RES_PARERR;
+	if (Stat & STA_NOINIT) return RES_NOTRDY;
+
+	res = RES_ERROR;
+
+	switch (ctrl) {
+	case CTRL_SYNC :		/* Make sure that no pending write process */
+        SD_Select();
+		if (SD_WaitForReady() == SD_TRUE)
+			res = RES_OK;
+		break;
+
+	case GET_SECTOR_COUNT :	/* Get number of sectors on the disk (DWORD) */
+		*(DWORD*)buff = CardConfig.sectorcnt;
+		res = RES_OK;
+		break;
+
+	case GET_SECTOR_SIZE :	/* Get R/W sector size (WORD) */
+		*(WORD*)buff = CardConfig.sectorsize;	//512;
+		res = RES_OK;
+		break;
+
+	case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
+		*(DWORD*)buff = CardConfig.blocksize;
+		res = RES_OK;
+		break;
+
+	case MMC_GET_TYPE :		/* Get card type flags (1 byte) */
+		*ptr = CardType;
+		res = RES_OK;
+		break;
+
+	case MMC_GET_CSD :		/* Receive CSD as a data block (16 bytes) */
+		for (n=0;n<16;n++)
+			*(ptr+n) = CardConfig.csd[n];
+		res = RES_OK;
+		break;
+
+	case MMC_GET_CID :		/* Receive CID as a data block (16 bytes) */
+		for (n=0;n<16;n++)
+			*(ptr+n) = CardConfig.cid[n];
+		res = RES_OK;
+		break;
+
+	case MMC_GET_OCR :		/* Receive OCR as an R3 resp (4 bytes) */
+		for (n=0;n<4;n++)
+			*(ptr+n) = CardConfig.ocr[n];
+		res = RES_OK;
+		break;
+
+	case MMC_GET_SDSTAT :	/* Receive SD status as a data block (64 bytes) */
+		for (n=0;n<64;n++)
+            *(ptr+n) = CardConfig.status[n];
+        res = RES_OK;
+		break;
+
+	default:
+		res = RES_PARERR;
+	}
+
+    SD_DeSelect();
+
+	return res;
+}
+
+/*-----------------------------------------------------------------------*/
+/* Read Sector(s)                                                        */
+/*-----------------------------------------------------------------------*/
+DRESULT disk_read (
+	BYTE drv,			/* Physical drive number (0) */
+	BYTE *buff,			/* Pointer to the data buffer to store read data */
+	DWORD sector,		/* Start sector number (LBA) */
+	BYTE count			/* Sector count (1..255) */
+)
+{
+	if (drv || !count) return RES_PARERR;
+	if (Stat & STA_NOINIT) return RES_NOTRDY;
+
+	if (SD_ReadSector (sector, buff, count) == SD_TRUE)
+		return RES_OK;
+	else
+		return RES_ERROR;
+}
+
+/*-----------------------------------------------------------------------*/
+/* Get Disk Status                                                       */
+/*-----------------------------------------------------------------------*/
+DSTATUS disk_status (
+	BYTE drv		/* Physical drive number (0) */
+)
+{
+	if (drv) return STA_NOINIT;		/* Supports only single drive */
+
+	return Stat;
+}
+
+/*-----------------------------------------------------------------------*/
+/* Write Sector(s)                                                       */
+/*-----------------------------------------------------------------------*/
+#if _READONLY == 0
+DRESULT disk_write (
+	BYTE drv,			/* Physical drive number (0) */
+	const BYTE *buff,	/* Pointer to the data to be written */
+	DWORD sector,		/* Start sector number (LBA) */
+	BYTE count			/* Sector count (1..255) */
+)
+{
+	if (drv || !count) return RES_PARERR;
+	if (Stat & STA_NOINIT) return RES_NOTRDY;
+//	if (Stat & STA_PROTECT) return RES_WRPRT;
+
+	if ( SD_WriteSector(sector, buff, count) == SD_TRUE)
+		return RES_OK;
+	else
+		return 	RES_ERROR;
+
+}
+#endif /* _READONLY == 0 */
 
 /*-----------------------------------------------------------------------*/
 /* Device timer function  (Platform dependent)                           */
@@ -491,10 +629,14 @@ SD_BOOL SD_RecvDataBlock (uint8_t *buf, uint32_t len)
 	} while (Timer1);
 	if(datatoken != 0xFE) return (SD_FALSE);	/* data read timeout */
 
-    /* Read data block */
+	/* Read data block */
+#ifdef USE_FIFO
+    SPI_RecvBlock_FIFO (buf, len);
+#else
     for (i = 0; i < len; i++) {
         buf[i] = SD_SSP_ReceiveData();
     }
+#endif
 
     /* 2 bytes CRC will be discarded. */
     SD_SSP_ReceiveData();
@@ -521,10 +663,14 @@ SD_BOOL SD_SendDataBlock (const uint8_t *buf, uint8_t tkn, uint32_t len)
     SD_SSP_SendData(tkn);
 
     /* Send data block */
+#ifdef USE_FIFO
+    SPI_SendBlock_FIFO (buf, len);
+#else
     for (i = 0; i < len; i++)
     {
     	SD_SSP_SendData(buf[i]);
     }
+#endif
 
     /* Send 2 bytes dummy CRC */
     SD_SSP_SendData(0xFF);
