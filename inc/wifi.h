@@ -34,22 +34,14 @@ enum{
 	DISPENSING_WATER,	/* CONNECTED state, performing a water dispense command */
 	CAPTURING,			/* CONNCETED state, performing a picture command */
 	TALKING, 			/* CONNCETED state, performing audio command */
+	PAN_LEFT,			/* CONNCETED state, panning camera left */
+	PAN_RIGHT,			/* CONNCETED state, panning camera right */
 	SCHEDULING			/* CONNECTED state, performing schedule change */
 };
 
 /* Enumeration for message */
 enum{
 	START, OPEN, CLOSED
-};
-
-/* Enumeration for dispensing */
-enum{
-	DISPENSING_FOOD, DISPENSING_WATER
-};
-
-/* Enumeration for comm */
-enum{
-	CAPTURING, TALKING
 };
 
 /* Function prototypes */
