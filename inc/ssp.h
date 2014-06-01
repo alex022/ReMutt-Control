@@ -340,6 +340,12 @@ IntStatus SSP_GetIntStatus (LPC_SSP_TypeDef *SSPx, uint32_t IntType);
 /* SSP transfer data functions ------------------------------------------------*/
 void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data);
 uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx);
+uint8_t SD_SSP_SendData(uint8_t Data);
+uint8_t SD_SSP_ReceiveData();
+#ifdef USE_FIFO
+void SPI_SendBlock_FIFO (const uint8_t *buf, uint32_t len);
+void SPI_RecvBlock_FIFO (uint8_t *buf, uint32_t len);
+#endif
 int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 						SSP_TRANSFER_Type xfType);
 

@@ -75,3 +75,30 @@ void setServoPosPer(uint8 percent)
 	PWM_CounterCmd(PWM_1, ENABLE);
 	PWM_Cmd(PWM_1, ENABLE);
 }
+
+
+uint8 panServo(uint8 direction)
+{
+	int16 degrees;
+
+	switch(direction)
+	{
+		case LEFT:
+			//extract current degrees from PWM1 Match Register 1 then subtract 45 to get new position
+			degrees = 180*(PWM_1->MR1 - PWM_MATCH_MIN)/(PWM_MATCH_MAX - PWM_MATCH_MIN)-45;
+			if (degrees < 0) 	// if camera is already rotated all the way left exit
+				return 0;
+			else
+				setServoPosDeg(degrees); //set new position
+			break;
+		case RIGHT:
+			//extract current degrees from PWM1 Match Register 1 then subtract 45 to get new position
+			degrees = 180*(PWM_1->MR1 - PWM_MATCH_MIN)/(PWM_MATCH_MAX - PWM_MATCH_MIN)+45;
+			if (degrees > 180) // if camera is already rotated all the way right exit
+				return 0;
+			else
+				setServoPosDeg(degrees); //set new position
+			break;
+	}
+	return 1;
+}

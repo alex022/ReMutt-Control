@@ -307,6 +307,103 @@ uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx)
  * 				Return (-1) if error.
  * Note: This function can be used in both master and slave mode.
  ***********************************************************************/
+
+/************************************************************************
+ * SD Card SPI Function Definitions for Send and Receive                *
+ ***********************************************************************/
+uint8_t SD_SSP_SendData(uint8_t Data)
+{
+	LPC_SSP2->DR = SSP_DR_BITMASK(Data);
+	/* Wait for sending to complete */
+	while (LPC_SSP2->SR & SSP_SR_BSY);
+	/* Return the received value */
+	return (LPC_SSP2->DR);
+}
+
+uint8_t SD_SSP_ReceiveData()
+{
+	return SD_SSP_SendData(0xFF);
+}
+
+/* SPI FIFO functions are from Martin Thomas */
+#ifdef USE_FIFO
+
+/* 8 frame FIFOs for both transmit and receive */
+#define SSP_FIFO_DEPTH       8
+void SPI_SendBlock_FIFO (const uint8_t *buf, uint32_t len)
+{
+	uint32_t cnt;
+	uint16_t data;
+
+	LPC_SSP0->CR0 |= 0x0f;  /* DSS to 16 bit */
+
+	/* fill the FIFO unless it is full */
+	for ( cnt = 0; cnt < ( len / 2 ); cnt++ )
+	{
+		/* wait for TX FIFO not full (TNF) */
+		while ( !( LPC_SSP0->SR & SSP_SR_TNF) );
+
+		data  = (*buf++) << 8;
+		data |= *buf++;
+		LPC_SSP0->DR = data;
+	}
+
+	/* wait for BSY gone */
+	while ( LPC_SSP0->SR & SSP_SR_BSY);
+
+	/* drain receive FIFO */
+	while ( LPC_SSP0->SR & SSP_SR_RNE ) {
+		data = LPC_SSP0->DR;
+	}
+
+	LPC_SSP0->CR0 &= ~0x08;  /* DSS to 8 bit */
+}
+
+
+/**
+  * @brief  Receive data block using FIFO.
+  *
+  * @param  buf: Pointer to the byte array to store received data
+  * @param  len: Specifies the length (in byte) to receive.
+  *              Should be multiple of 4.
+  * @retval None.
+  */
+void SPI_RecvBlock_FIFO (uint8_t *buf, uint32_t len)
+{
+	uint32_t hwtr, startcnt, i, rec;
+
+	hwtr = len/2;
+	if ( len < SSP_FIFO_DEPTH ) {
+		startcnt = hwtr;
+	} else {
+		startcnt = SSP_FIFO_DEPTH;
+	}
+
+	LPC_SSP0 -> CR0 |= 0x0f;  /* DSS to 16 bit */
+
+	for ( i = startcnt; i; i-- ) {
+		LPC_SSP0->DR = 0xffff;  // fill TX FIFO
+	}
+
+	do {
+		while ( !(LPC_SSP0->SR & SSP_SR_RNE ) ) {
+			// wait for data in RX FIFO (RNE set)
+		}
+		rec = LPC_SSP0->DR;
+		if ( i < ( hwtr - startcnt ) ) {
+			LPC_SSP0->DR = 0xffff;
+		}
+		*buf++ = (uint8_t)(rec >> 8);
+		*buf++ = (uint8_t)(rec);
+		i++;
+	} while ( i < hwtr );
+
+    LPC_SSP0->CR0 &= ~0x08;  /* DSS to 8 bit */
+}
+#endif
+
+/************************************************************************/
+
 int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 						SSP_TRANSFER_Type xfType)
 {

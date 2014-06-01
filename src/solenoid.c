@@ -12,7 +12,7 @@
 void initSolenoid()
 {
 	GPIOSetDir(SOLENOID_PORT,SOLENOID_PIN, GPIO_OUTPUT);
-	GPIOSetDir(SOLENOID_PORT,SOLENOID_PIN, 1);
+	solenoidClose();
 }
 
 void solenoidOpen()
@@ -23,4 +23,11 @@ void solenoidOpen()
 void solenoidClose()
 {
 	GPIOSetDir(SOLENOID_PORT,SOLENOID_PIN, 1);
+}
+
+void fillWater()
+{
+	solenoidOpen();
+	while(!getLoadSignal(WATER_FULL));
+	solenoidClose();
 }

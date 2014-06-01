@@ -16,14 +16,13 @@ uint8 checkReply(uint8* r, uint8 c)
 uint8 cameraInit()
 {
 	uart2Init(uartBAUD38400, uartSTOP_BIT_1, uartPARITY_DISABLE);
-	//if (cameraReset())  //Doesn't work but might not
-	//	return 1;
-	if(setUartSpeed(uartBAUD115200))
+	if (getVersion())
 		return 1;
-
 	return 0;
 }
 
+/*     DONT USE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * 			YOU COULD BREAK THE CAMERA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    */
 uint8 setUartSpeed(const enum uartBaud baud)
 {
 	uint8 command[10];
@@ -249,7 +248,6 @@ uint8 getAndStorePhoto(uint32 bytes)
 		addr += 32;
 	}
 
-	//TODO: save photo to memory
 	free(photo);
 	return 0;
 }

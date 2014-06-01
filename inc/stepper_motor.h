@@ -81,6 +81,14 @@ void spinStepper(uint32 total_steps);
 void motorOff();
 
 /*------------------------------------------------------------------------------
+ function name:		reverseSpin
+ description: 		spins stepper in opposite direction for unjamming
+ parameters:		number of steps to spin
+ returned value:	none
+------------------------------------------------------------------------------*/
+void reverseSpin(uint32 total_steps);
+
+/*------------------------------------------------------------------------------
  function name:		spinUntilFull
  description: 		spins until full signal asserted
  parameters:		none
