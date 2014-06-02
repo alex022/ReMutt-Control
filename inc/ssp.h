@@ -353,4 +353,6 @@ int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 void SSP_IntConfig(LPC_SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState);
 void SSP_ClearIntPending(LPC_SSP_TypeDef *SSPx, uint32_t IntType);
 
+void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
+
 #endif /* SSP_H_ */

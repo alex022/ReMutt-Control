@@ -43,7 +43,7 @@
 #include "clkpwr.h"
 
 /* Public Functions ----------------------------------------------------------- */
-static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
+
 
 /*********************************************************************//**
  * @brief 		Setup clock rate for SSP device
@@ -53,7 +53,7 @@ static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
  * @param[in]	target_clock : clock of SSP (Hz)
  * @return 		None
  ***********************************************************************/
-static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
+void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
 {
     uint32_t prescale, cr0_div, cmp_clk, ssp_clk;
     ssp_clk = CLKPWR_GetCLK (CLKPWR_CLKTYPE_PER);
@@ -112,6 +112,13 @@ void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct)
 	} else if(SSPx == LPC_SSP2) {
 		/* Set up clock and power for SSP1 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP2, ENABLE);
+
+		PINSEL_ConfigPin(1,13,0); //bsync
+					PINSEL_ConfigPin(1,4,4); //so
+					PINSEL_ConfigPin(1,14,0); //xcs
+					PINSEL_ConfigPin(1,1,4); //si
+					PINSEL_ConfigPin(1,0,4); //sclk
+					PINSEL_ConfigPin(1,10,0); //dreq
     } else {
 		return;
 	}
@@ -275,6 +282,11 @@ void SSP_SlaveOutputCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
 void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data)
 {
 	SSPx->DR = SSP_DR_BITMASK(Data);
+
+	TIM_Waitus(2);
+
+	return;
+
 }
 
 
