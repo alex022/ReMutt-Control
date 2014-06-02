@@ -41,6 +41,6 @@ uint8 takePhoto();
 uint8 stopFrame();
 uint8 resumeFrame();
 uint32 getBufferLength();
-uint8 getAndStorePhoto(uint32 bytes);
+uint8 getAndSendPhoto(uint32 bytes);
 
 #endif /* CAMERA_H_ */
