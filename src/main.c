@@ -25,6 +25,7 @@
 #include "sdram.h"
 #include "pinsel.h"
 #include "solenoid.h"
+#include "audio.h"
 
 //Testing
 int main(void) {
@@ -36,7 +37,6 @@ int main(void) {
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
 
 	// Initialize Peripherals
-
 	INIT_SDRAM();										/* initialize SDRAM */
 	servoInit();										/* initialize FSR servo motor for panning camera */
 	initStepper();										/* initialize stepper motor for dispensing food */
@@ -44,52 +44,68 @@ int main(void) {
 	initSolenoid();										/* initialize solenoid valve */
 	initWiFi(AUTO_CONNECT);								/* initialize WiFi module -- must be attached*/
 
-	if(cameraInit())
-		printf("Camera not initialized!\n\r");			/* initialize camera communication */
-
-	int i = 0;
+	int i = 0, retval;
 	uint32 length;										/* length variable for photo */
 	printf("Entering while loop\n\r");
-
+	audio_storeVoice();
 	// Enter an infinite loop
     while(1) {
+
     	if(STATE == DISPENSING_FOOD){
     	    printf("Entering food dispense state\n\r");
     	    /* Execute commands to dispense food */
     	    spinUntilFull();
     	    STATE = CONNECTED;
     	}
+
     	if(STATE == DISPENSING_WATER){
     		printf("Entering water dispense state\n\r");
     		/* Execute commands to dispense water */
     		fillWater();
     		STATE = CONNECTED;
     	   	}
+
     	if(STATE == CAPTURING){
    	 		printf("Entering camera taking state\n\r");
-   	 		/* Execute commands to take and send a photo */
-   	 		stopFrame();
+   	 		/* Initialize camera and set it up to take a picture */
+   	 		if(cameraInit())
+   	 			printf("Camera not initialized!\n\r");
+   	 		retval = stopFrame();
    	 		length = getBufferLength();
+   	 		printf("length: %i\n\r", length);
+
+   	 		/* Send length to Android application */
+   	 		int temp_len = length;
+   	 		while(temp_len){
+   	 			uart1PutChar(temp_len % 10);
+   	 			temp_len = temp_len / 10;
+   	 		}
+
+   	 		/* Send photo and finish set up */
    	 		getAndSendPhoto(length);
    	 		resumeFrame();
    	 		STATE = CONNECTED;
   	   	}
+
    	    if(STATE == TALKING){
        		printf("Entering audio output state\n\r");
        		/* Execute commands to output audio file */
 
        		STATE = CONNECTED;
 	    }
+
    	    if(STATE == PAN_LEFT){
    	    	/* Execute commands to pan servo left */
    	    	panServo(LEFT);
        		STATE = CONNECTED;
    	    }
+
    	    if(STATE == PAN_RIGHT){
    	    	/* Execute commands to pan servo right */
    	    	panServo(RIGHT);
        		STATE = CONNECTED;
    	    }
+
    	    if(STATE == SCHEDULING){
        		/* Execute commands to schedule a feeding time */
 

@@ -5,6 +5,7 @@
 *      Author: eric_brunnett
 */
 #include "camera.h"
+#include "timer.h"
 
 uint8 checkReply(uint8* r, uint8 c)
 {
@@ -183,12 +184,12 @@ uint32 getBufferLength()
 	return 0;
 }
 
-uint8 getAndStorePhoto(uint32 bytes)
+uint8 getAndSendPhoto(uint32 bytes)
 {
 	uint32 addr = 0;
 	uint8 command[20];
 	uint8 return_command[40];
-	uint8* photo = malloc(bytes*sizeof(uint8));
+	//uint8* photo = malloc(bytes*sizeof(uint8));
 	uint32 photo_pos = 0;
 	uint8 photo_data[32];
 	uint8 error = 0;
@@ -243,12 +244,13 @@ uint8 getAndStorePhoto(uint32 bytes)
 		uint8 pos = 0;
 		while(pos < 32)
 		{
-			photo[photo_pos++] = photo_data[pos++];
+			//photo[photo_pos++] = photo_data[pos];
+			uart1PutChar(photo_data[pos++]);
+			//TIM_Waitus(10);
 		}
 		addr += 32;
 	}
-
-	free(photo);
+	//free(photo);
 	return 0;
 }
 
@@ -268,7 +270,7 @@ uint8 takePhoto(void) {
 		printf("getBufferLength error!\n\r");
 		return 1;
 	}
-	error = getAndStorePhoto(len);
+	error = getAndSendPhoto(len);
 	if (error)
 	{
 		printf("getAndStorePhoto error!\n\r");

@@ -137,18 +137,24 @@ void getMessage(char string[]){
 	/* If we're connected, check if we need to move into an action state */
 	if( (strcmp(message, "FOOD") == 0) && STATE == CONNECTED)
 		STATE = DISPENSING_FOOD;
+
 	else if( (strcmp(message, "WATER") == 0) && STATE == CONNECTED)
 		STATE = DISPENSING_WATER;
-	else if( (strcmp(message, "PICTURE") == 0) && STATE == CONNECTED) {
+
+	else if( (strcmp(message, "PICTURE") == 0) && STATE == CONNECTED)
 		STATE = CAPTURING;
-	}
+
 	else if( (strcmp(message, "AUDIO") == 0) && STATE == CONNECTED)
 		STATE = TALKING;
+
 	else if( (strcmp(message, "SCHEDULE") == 0) && STATE == CONNECTED)
 		STATE = SCHEDULING;
+
 	else if( (strcmp(message, "PANLEFT") == 0) && STATE == CONNECTED)
 		STATE = PAN_LEFT;
+
 	else if( (strcmp(message, "PANRIGHT") == 0) && STATE == CONNECTED)
 		STATE = PAN_RIGHT;
+
 	printf("\n\r");
 }
