@@ -60,9 +60,7 @@ void initFSR()
 		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 0);
 		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
 	}
-	//GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 0);
-	//GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 0);
-	//GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
+
 }
 
 /*------------------------------------------------------------------------------
