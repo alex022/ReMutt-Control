@@ -26,15 +26,28 @@
 #include "pinsel.h"
 #include "solenoid.h"
 #include "audio.h"
+#include "rtc.h"
 
-//Testing
 int main(void) {
 	//Variable Declarations
 	TIM_TIMERCFG_Type timerCfg;
+	RTC_TIME_Type* feedtime[4];
+	RTC_TIME_Type* watertime = malloc(sizeof(RTC_TIME_Type));
+	RTC_TIME_Type* time = malloc(sizeof(RTC_TIME_Type));;
+	uint8 fed = 0;
+	uint8 watered = 0;
+	uint8 scheduled_feeds = 0;
+	watertime->HOUR = 5;
+	watertime->MIN = 0;
 
 	//Initialize timer0 for delays
 	TIM_ConfigStructInit(TIM_TIMER_MODE, &timerCfg);	/* initialize timer config struct */
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
+
+	//Initialize Real Time Clock
+	RTC_Init(LPC_RTC);
+	RTC_Cmd(LPC_RTC, ENABLE);
+	RTC_ResetClockTickCounter(LPC_RTC);
 
 	// Initialize Peripherals
 	INIT_SDRAM();										/* initialize SDRAM */
@@ -111,6 +124,28 @@ int main(void) {
 
        		STATE = CONNECTED;
    	    }
+
+   	    RTC_GetFullTime(LPC_RTC, time);
+   	    //Fill water bowl at predetermined time
+   	    if (time->HOUR == watertime->HOUR + 1 && watered == 1)
+   	    	watered = 0;
+   	    if (watertime->HOUR == time->HOUR && watertime->MIN < time->MIN && watered == 0)
+   	    {
+   	    	fillWater();
+   	    	watered = 1;
+   	    }
+   	    //Feed dog on schedule if any cannot feed dog two consecutive hours
+   	    for(i = 0; i < scheduled_feeds; i++)
+   	    {
+			if (time->HOUR == feedtime[i]->HOUR + 1 && fed == 1)
+				fed = 0;
+			if (feedtime[i]->HOUR == time->HOUR && feedtime[i]->MIN < time->MIN && fed == 0)
+			{
+				spinUntilFull();
+				fed = 1;
+			}
+   	    }
+
     }
     return 0;
 }
