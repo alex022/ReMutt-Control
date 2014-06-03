@@ -83,7 +83,7 @@ uint8 panServo(uint8 direction)
 
 	switch(direction)
 	{
-		case LEFT:
+		case RIGHT:
 			//extract current degrees from PWM1 Match Register 1 then subtract 45 to get new position
 			degrees = 180*(LPC_PWM1->MR1 - PWM_MATCH_MIN)/(PWM_MATCH_MAX - PWM_MATCH_MIN)-45;
 			if (degrees < 0) 	// if camera is already rotated all the way left exit
@@ -91,7 +91,7 @@ uint8 panServo(uint8 direction)
 			else
 				setServoPosDeg(degrees); //set new position
 			break;
-		case RIGHT:
+		case LEFT:
 			//extract current degrees from PWM1 Match Register 1 then subtract 45 to get new position
 			degrees = 180*(LPC_PWM1->MR1 - PWM_MATCH_MIN)/(PWM_MATCH_MAX - PWM_MATCH_MIN)+45;
 			if (degrees > 180) // if camera is already rotated all the way right exit
