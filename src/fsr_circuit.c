@@ -23,6 +23,8 @@
 ------------------------------------------------------------------------------*/
 void initFSR()
 {
+	uint8 i;
+
 	//Set load signals to inputs
 	GPIOSetDir(WATER_FULL_SIG_PORT, WATER_FULL_SIG_PIN, GPIO_INPUT);
 	GPIOSetDir(FOOD_FULL_SIG_PORT, FOOD_FULL_SIG_PIN, GPIO_INPUT);
@@ -37,14 +39,30 @@ void initFSR()
 	GPIOSetDir(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, GPIO_OUTPUT);
 
 	//Set initial control signal values
-	GPIOSetValue(FOOD_FULL_CS_PORT, FOOD_FULL_CS_PIN, 1);
+	GPIOSetValue(FOOD_FULL_CS_PORT, FOOD_FULL_CS_PIN, 0);
 	GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
 	GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 1);
 
-	GPIOSetValue(WATER_FULL_CS_PORT, WATER_FULL_CS_PIN, 1);
+	GPIOSetValue(WATER_FULL_CS_PORT, WATER_FULL_CS_PIN, 0);
 	GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
 	GPIOSetValue(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, 1);
 
+	for (i = 0; i < 32; i++)
+	{
+		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 0);
+		GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 0);
+		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
+		GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
+	}
+	GPIOSetValue(WATER_FULL_UD_PORT, WATER_FULL_UD_PIN, 0);
+	for (i = 0; i < 3; i++)
+	{
+		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 0);
+		GPIOSetValue(WATER_FULL_INC_PORT, WATER_FULL_INC_PIN, 1);
+	}
+	//GPIOSetValue(FOOD_FULL_UD_PORT, FOOD_FULL_UD_PIN, 0);
+	//GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 0);
+	//GPIOSetValue(FOOD_FULL_INC_PORT, FOOD_FULL_INC_PIN, 1);
 }
 
 /*------------------------------------------------------------------------------
@@ -90,12 +108,11 @@ int32 promptIncrementDCP(uint8 dcp)
 {
 	int32 increments = 0;
 	uint8 input;
-	scanf("%c", &input);
 	do
 	{
-		printf("\n\rIncrement Up(u) or Down(d) or Quit(q)? ");
+		printf("Increment Up(u) or Down(d) or Quit(q)? ");
 		scanf("%c", &input);
-		printf("%c", input);
+		printf("%c\n\r", input);
 		if (input == 'd' || input == 'D' || input == 'u' || input == 'U')
 		{
 			if (input == 'd' || input == 'D')
