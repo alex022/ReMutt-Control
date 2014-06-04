@@ -22,6 +22,7 @@ void initWiFi(int setting){
 
 	/* set global WiFi variables */
 	iterator = 0;
+	audio_index = 0;
 	STATE = IDLE;
 	check_flag = 0;
 	message = "";

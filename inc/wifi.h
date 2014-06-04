@@ -17,7 +17,7 @@
 #define WIFI_BUFF_SIZE 10
 
 /* State Variable, buffer iterator */
-int STATE, iterator;
+int STATE, iterator, audio_index;
 
 /* Flag to check for a new connection */
 int check_flag;
@@ -33,6 +33,7 @@ enum{
 	DISPENSING_FOOD,	/* CONNECTED state, performing a food dispense command */
 	DISPENSING_WATER,	/* CONNECTED state, performing a water dispense command */
 	CAPTURING,			/* CONNCETED state, performing a picture command */
+	OUTPUTTING,			/* CONNECTED state, outputting audio */
 	TALKING, 			/* CONNCETED state, performing audio command */
 	PAN_LEFT,			/* CONNCETED state, panning camera left */
 	PAN_RIGHT,			/* CONNCETED state, panning camera right */

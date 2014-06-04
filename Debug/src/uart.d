@@ -13,8 +13,13 @@ src/uart.d: ../src/uart.c X:\rmc\CMSIS_CORE_LPC177x_8x\inc/LPC177x_8x.h \
  X:\rmc\ReMutt_Control_Code\inc/uart.h \
  X:\rmc\ReMutt_Control_Code\inc/gpdma.h \
  X:\rmc\ReMutt_Control_Code\inc/global.h \
+ X:\rmc\ReMutt_Control_Code\inc/rtc.h \
+ X:\rmc\ReMutt_Control_Code\inc/lpc_types.h \
  X:\rmc\ReMutt_Control_Code\inc/timer.h \
- X:\rmc\ReMutt_Control_Code\inc/lpc_types.h
+ X:\rmc\ReMutt_Control_Code\inc/wifi.h \
+ X:\rmc\ReMutt_Control_Code\inc/uart.h \
+ X:\rmc\ReMutt_Control_Code\inc/sdram.h \
+ X:\rmc\ReMutt_Control_Code\inc/global.h
 
 X:\rmc\CMSIS_CORE_LPC177x_8x\inc/LPC177x_8x.h:
 
@@ -46,6 +51,16 @@ X:\rmc\ReMutt_Control_Code\inc/gpdma.h:
 
 X:\rmc\ReMutt_Control_Code\inc/global.h:
 
-X:\rmc\ReMutt_Control_Code\inc/timer.h:
+X:\rmc\ReMutt_Control_Code\inc/rtc.h:
 
 X:\rmc\ReMutt_Control_Code\inc/lpc_types.h:
+
+X:\rmc\ReMutt_Control_Code\inc/timer.h:
+
+X:\rmc\ReMutt_Control_Code\inc/wifi.h:
+
+X:\rmc\ReMutt_Control_Code\inc/uart.h:
+
+X:\rmc\ReMutt_Control_Code\inc/sdram.h:
+
+X:\rmc\ReMutt_Control_Code\inc/global.h:

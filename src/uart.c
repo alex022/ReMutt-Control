@@ -22,6 +22,8 @@
 #include "uart.h"
 #include "timer.h"
 #include "wifi.h"
+#include "sdram.h"
+#include "global.h"
 
 /*==============================================================================
  Defines
@@ -1319,12 +1321,145 @@ void UART1_IRQHandler (void)
 	int retval;
 	retval = uart1Getchar();
 	if(retval != -1){
-		printf("%c", retval);
+		//printf("%c", retval);
 		if(retval == '*' || check_flag == 1){
 			if(retval == '*')
 				check_flag = (check_flag + 1) % 3;
 			buffer[iterator] = retval;
 			iterator = (iterator + 1) % WIFI_BUFF_SIZE;
+		}
+		if(STATE == TALKING){
+			*(unsigned char*)((unsigned int)SDRAM_BASE_ADDR+audio_index) = retval;
+			//audio_index+=sizeof(unsigned char);
+
+			//printf("%02X", retval);
+			audio_index++;
+			byte_rec++;
+		}
+		if(STATE == SCHEDULING){
+			switch(byte_rec)
+			{
+				case 0:
+				{
+
+					printf("Case0\n\r");
+					printf("%c", retval);
+					if (time_set == 0 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						time->HOUR = atoi(retval)*10;
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+
+					break;
+				}
+				case 1:
+				{
+					printf("Case1\n\r");
+					printf("%c", retval);
+					if (time_set == 0 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						time->HOUR += atoi(retval);
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+
+					break;
+				}
+				case 2:
+				{
+					printf("Case2\n\r");
+					printf("%c", retval);
+					if (time_set == 0 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						time->MIN = atoi(retval)*10;
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+					break;
+				}
+				case 3:
+				{
+					printf("Case3\n\r");
+					printf("%c", retval);
+					if (time_set == 0 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						time->MIN += atoi(retval);
+						byte_rec++;
+						time_set = 1;
+					}
+					else
+						byte_rec++;
+
+					break;
+				}
+				case 4:
+				{
+					printf("Case4\n\r");
+					printf("%c", retval);
+					if (scheduled_feeds < 4 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						feedtime[scheduled_feeds] = (RTC_TIME_Type*) malloc(sizeof(RTC_TIME_Type));
+						feedtime[scheduled_feeds]->HOUR = atoi(retval)*10;
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+					break;
+				}
+				case 5:
+				{
+					printf("Case5\n\r");
+					printf("%c", retval);
+					if (scheduled_feeds < 4 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						feedtime[scheduled_feeds]->HOUR += atoi(retval);
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+					break;
+				}
+				case 6:
+				{
+					printf("Case6\n\r");
+					printf("%c", retval);
+					if (scheduled_feeds < 4 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						feedtime[scheduled_feeds]->MIN = atoi(retval)*10;
+						byte_rec++;
+					}
+					else
+						byte_rec++;
+					break;
+				}
+				case 7:
+				{
+					printf("Case7\n\r");
+					printf("%c", retval);
+					if (scheduled_feeds < 4 && retval >= 0x30 && retval <= 0x39)
+					{
+						printf("if\n\r");
+						feedtime[scheduled_feeds++]->MIN += atoi(retval);
+						byte_rec = 0;
+			   	    	printf("%d:%02d  %d:%02d", time->HOUR, time->MIN, feedtime[0]->HOUR, feedtime[0]->MIN);
+					}
+					else
+						byte_rec = 0;
+					break;
+				}
+			}
+
 		}
 		if(check_flag == 2){
 			getMessage(buffer);

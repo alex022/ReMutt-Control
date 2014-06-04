@@ -75,6 +75,36 @@ void setFullStep(uint8 step)
 	}
 }
 
+void setFullStepBack(uint8 step)
+{
+	switch (step)
+	{
+		case 0:
+			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 1);
+			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 1);
+			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 0);
+			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 0);
+			break;
+		case 1:
+			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 0);
+			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 1);
+			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 1);
+			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 0);
+			break;
+		case 2:
+			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 0);
+			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 0);
+			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 1);
+			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 1);
+			break;
+		case 3:
+			GPIOSetValue(PHASE1_SIG_PORT, PHASE1_SIG_PIN, 1);
+			GPIOSetValue(PHASE2_SIG_PORT, PHASE2_SIG_PIN, 0);
+			GPIOSetValue(PHASE3_SIG_PORT, PHASE3_SIG_PIN, 0);
+			GPIOSetValue(PHASE4_SIG_PORT, PHASE4_SIG_PIN, 1);
+			break;
+	}
+}
 /*------------------------------------------------------------------------------
  function name:		setFullStep
  description: 		prompts user to set motor position
@@ -143,10 +173,10 @@ void reverseSpin(uint32 total_steps)
 
 		TIM_Waitms(20);
 
-		setFullStep(step--);
+		setFullStepBack(step++);
 
-		if (step == 0)
-			step = 4;
+		if (step == 4)
+			step = 0;
 		j++;
 	}
 	motorOff();
@@ -182,8 +212,8 @@ void spinUntilFull()
 
 		TIM_Waitms(20);
 
-		if (total_steps++%1000 == 999)
-			reverseSpin(50);
+		if (total_steps == 200)
+			reverseSpin(200);
 
 		setFullStep(step++);
 

@@ -4,10 +4,12 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/audio.c \
 ../src/camera.c \
 ../src/clkpwr.c \
 ../src/cr_startup_lpc177x_8x.c \
 ../src/crp.c \
+../src/ff.c \
 ../src/fsr_circuit.c \
 ../src/global.c \
 ../src/gpio.c \
@@ -15,8 +17,11 @@ C_SRCS += \
 ../src/pinsel.c \
 ../src/pwm.c \
 ../src/retarget.c \
+../src/rtc.c \
+../src/sd.c \
 ../src/sdram.c \
 ../src/servo.c \
+../src/solenoid.c \
 ../src/ssp.c \
 ../src/stepper_motor.c \
 ../src/timer.c \
@@ -24,10 +29,12 @@ C_SRCS += \
 ../src/wifi.c 
 
 OBJS += \
+./src/audio.o \
 ./src/camera.o \
 ./src/clkpwr.o \
 ./src/cr_startup_lpc177x_8x.o \
 ./src/crp.o \
+./src/ff.o \
 ./src/fsr_circuit.o \
 ./src/global.o \
 ./src/gpio.o \
@@ -35,8 +42,11 @@ OBJS += \
 ./src/pinsel.o \
 ./src/pwm.o \
 ./src/retarget.o \
+./src/rtc.o \
+./src/sd.o \
 ./src/sdram.o \
 ./src/servo.o \
+./src/solenoid.o \
 ./src/ssp.o \
 ./src/stepper_motor.o \
 ./src/timer.o \
@@ -44,10 +54,12 @@ OBJS += \
 ./src/wifi.o 
 
 C_DEPS += \
+./src/audio.d \
 ./src/camera.d \
 ./src/clkpwr.d \
 ./src/cr_startup_lpc177x_8x.d \
 ./src/crp.d \
+./src/ff.d \
 ./src/fsr_circuit.d \
 ./src/global.d \
 ./src/gpio.d \
@@ -55,8 +67,11 @@ C_DEPS += \
 ./src/pinsel.d \
 ./src/pwm.d \
 ./src/retarget.d \
+./src/rtc.d \
+./src/sd.d \
 ./src/sdram.d \
 ./src/servo.d \
+./src/solenoid.d \
 ./src/ssp.d \
 ./src/stepper_motor.d \
 ./src/timer.d \

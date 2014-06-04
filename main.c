@@ -26,42 +26,28 @@
 #include "pinsel.h"
 #include "solenoid.h"
 #include "audio.h"
-#include "rtc.h"
-#include "global.h"
 
+//Testing
 int main(void) {
 	//Variable Declarations
-	initSolenoid();										/* initialize solenoid valve */
 	TIM_TIMERCFG_Type timerCfg;
-	initTimeStruct();
-	RTC_TIME_Type* watertime = malloc(sizeof(RTC_TIME_Type));
-	uint8 fed = 0;
-	uint8 watered = 0;
-	watertime->HOUR = 5;
-	watertime->MIN = 0;
 
 	//Initialize timer0 for delays
 	TIM_ConfigStructInit(TIM_TIMER_MODE, &timerCfg);	/* initialize timer config struct */
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &timerCfg);		/* initialize timer0 */
-
-	//Initialize Real Time Clock
-	RTC_Init(LPC_RTC);
-	RTC_Cmd(LPC_RTC, ENABLE);
-	RTC_ResetClockTickCounter(LPC_RTC);
 
 	// Initialize Peripherals
 	INIT_SDRAM();										/* initialize SDRAM */
 	servoInit();										/* initialize FSR servo motor for panning camera */
 	initStepper();										/* initialize stepper motor for dispensing food */
 	initFSR();											/* initialize force sensitive resistor circuit for food and water full signals */
+	initSolenoid();										/* initialize solenoid valve */
 	initWiFi(AUTO_CONNECT);								/* initialize WiFi module -- must be attached*/
-
 	audio_initialize();
-	audio_reset();
-	//audio_test();
-	audio_setupMP3();
-
-
+   	audio_reset();
+   	audio_setupMP3();
+	if(cameraInit())
+		printf("Camera not initialized!\n\r");
 
 	int i = 0, retval;
 	uint32 length;										/* length variable for photo */
@@ -73,9 +59,7 @@ int main(void) {
     	if(STATE == DISPENSING_FOOD){
     	    printf("Entering food dispense state\n\r");
     	    /* Execute commands to dispense food */
-    	    //spinUntilFull();
-    	    spinStepper(300);
-    	    reverseSpin(250);
+    	    spinUntilFull();
     	    STATE = CONNECTED;
     	}
 
@@ -89,8 +73,6 @@ int main(void) {
     	if(STATE == CAPTURING){
    	 		printf("Entering camera taking state\n\r");
    	 		/* Initialize camera and set it up to take a picture */
-   	 		if(cameraInit())
-   	 			printf("Camera not initialized!\n\r");
    	 		retval = stopFrame();
    	 		length = getBufferLength();
    	 		printf("length: %i\n\r", length);
@@ -107,13 +89,16 @@ int main(void) {
    	 		resumeFrame();
    	 		STATE = CONNECTED;
   	   	}
-
-   	    if(STATE == TALKING){
-       		printf("Entering audio output state\n\r");
+   	    if(STATE == OUTPUTTING){
+   	    	printf("\n\rEntering audio output state\n\r");
        		/* Execute commands to output audio file */
-
-       		audio_playVoice();
-       		STATE = CONNECTED;
+       		for (i = 0; i < audio_index; i+=sizeof(unsigned char)){
+       			printf("%02X", *(unsigned char*)((unsigned int)SDRAM_BASE_ADDR+i));
+       		}
+       		//audio_playVoice(audio_index);
+       		audio_index = 0;
+       		byte_rec = 0;
+       		STATE = IDLE;
 	    }
 
    	    if(STATE == PAN_LEFT){
@@ -130,28 +115,8 @@ int main(void) {
 
    	    if(STATE == SCHEDULING){
        		/* Execute commands to schedule a feeding time */
-       		STATE = CONNECTED;
-   	    }
 
-   	    RTC_GetFullTime(LPC_RTC, time);
-   	    //Fill water bowl at predetermined time
-   	    if (time->HOUR == watertime->HOUR + 1 && watered == 1)
-   	    	watered = 0;
-   	    if (watertime->HOUR == time->HOUR && watertime->MIN < time->MIN && watered == 0)
-   	    {
-   	    	fillWater();
-   	    	watered = 1;
-   	    }
-   	    //Feed dog on schedule if any cannot feed dog two consecutive hours
-   	    for(i = 0; i < scheduled_feeds; i++)
-   	    {
-			if (time->HOUR == feedtime[i]->HOUR + 1 && fed == 1)
-				fed = 0;
-			if (feedtime[i]->HOUR == time->HOUR && feedtime[i]->MIN < time->MIN && fed == 0)
-			{
-				spinUntilFull();
-				fed = 1;
-			}
+       		STATE = CONNECTED;
    	    }
     }
     return 0;

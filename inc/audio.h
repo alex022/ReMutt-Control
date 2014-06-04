@@ -18,7 +18,7 @@ void audio_initialize();
 void audio_reset();
 void audio_test();
 void audio_setVolume(uint8 vol);
-void audio_setupMP3(char *filename);
+void audio_setupMP3();
 void audio_playVoice();
 void audio_storeVoice();
 

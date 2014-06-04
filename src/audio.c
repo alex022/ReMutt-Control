@@ -7,6 +7,8 @@
 
 #include "audio.h"
 #include "sdram.h"
+#include "global.h"
+
 
 
 
@@ -37,7 +39,7 @@ void audio_initialize(){
 	GPIOSetDir(1,1,GPIO_OUTPUT); //mosi set to output
 	GPIOSetDir(1,4,GPIO_INPUT); //miso set to input
 
-
+	printf("audio initialized");
 
 
 }
@@ -72,6 +74,8 @@ void audio_reset(){
 		TIM_Waitus(5);
 
 		GPIOSetValue(1,14,1);
+
+		printf("audio reset");
 
 		while(!GPIOGetValue( 1, 10)) ;
 }
@@ -146,7 +150,7 @@ void audio_setVolume(uint8 vol)
 }
 
 
-void audio_setupMP3(char *filename){
+void audio_setupMP3(){
 	while(!GPIOGetValue( 1, 10)) ;
 
 
@@ -164,6 +168,7 @@ void audio_setupMP3(char *filename){
 
 
 
+	printf("audio setup");
 
 	//RECIEVE SOUND FILE AND STORE INTO BUFFER
 	//RECIEVE LOCATION OF BUFFER
@@ -207,8 +212,8 @@ void audio_playVoice(){			//file is the audio buffer with all the data from andr
 
 		printf("starting to play audio");
 
-while(z < size){
-		while(GPIOGetValue( 1, 10) && (i < size)) //dreq is not low
+while(i < byte_rec){
+		while(GPIOGetValue( 1, 10) && (i < byte_rec)) //dreq is not low
 		{
 
 
@@ -237,6 +242,8 @@ while(z < size){
 		}
 
 }
+
+printf("done playing audio");
 
 }
 
