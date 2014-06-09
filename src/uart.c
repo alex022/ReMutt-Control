@@ -1328,14 +1328,6 @@ void UART1_IRQHandler (void)
 			buffer[iterator] = retval;
 			iterator = (iterator + 1) % WIFI_BUFF_SIZE;
 		}
-		if(STATE == TALKING){
-			*(unsigned char*)((unsigned int)SDRAM_BASE_ADDR+audio_index) = retval;
-			//audio_index+=sizeof(unsigned char);
-
-			//printf("%02X", retval);
-			audio_index++;
-			byte_rec++;
-		}
 		if(STATE == SCHEDULING){
 			switch(byte_rec)
 			{

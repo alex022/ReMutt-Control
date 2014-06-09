@@ -61,8 +61,6 @@ int main(void) {
 	//audio_test();
 	audio_setupMP3();
 
-
-
 	int i = 0, retval;
 	uint32 length;										/* length variable for photo */
 	printf("Entering while loop\n\r");
@@ -108,12 +106,19 @@ int main(void) {
    	 		STATE = CONNECTED;
   	   	}
 
-   	    if(STATE == TALKING){
-       		printf("Entering audio output state\n\r");
-       		/* Execute commands to output audio file */
+   	    if(STATE == TALKING1){
+   	    	audio_playVoice(1);
+   	    	STATE = CONNECTED;
+	    }
 
-       		audio_playVoice();
-       		STATE = CONNECTED;
+   	    if(STATE == TALKING2){
+   	    	audio_playVoice(2);
+   	    	STATE = CONNECTED;
+	    }
+
+   	    if(STATE == TALKING3){
+   	    	audio_playVoice(3);
+   	    	STATE = CONNECTED;
 	    }
 
    	    if(STATE == PAN_LEFT){
@@ -133,6 +138,7 @@ int main(void) {
        		STATE = CONNECTED;
    	    }
 
+   	    /* Scheduling */
    	    RTC_GetFullTime(LPC_RTC, time);
    	    //Fill water bowl at predetermined time
    	    if (time->HOUR == watertime->HOUR + 1 && watered == 1)

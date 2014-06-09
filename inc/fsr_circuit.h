@@ -27,13 +27,15 @@
 
 
 /*Signal Port/Pin Assignments*/
+/*
 #define FOOD_FULL_SIG_PORT		PORT3
 #define FOOD_FULL_SIG_PIN		31
 
 #define WATER_FULL_SIG_PORT		PORT3
 #define WATER_FULL_SIG_PIN		30
-
+*/
 /*DCP control signals*/
+/*
 #define FOOD_FULL_INC_PORT		PORT5
 #define FOOD_FULL_INC_PIN		0
 #define FOOD_FULL_UD_PORT		PORT5
@@ -47,7 +49,26 @@
 #define WATER_FULL_UD_PIN		19
 #define WATER_FULL_CS_PORT		PORT3
 #define WATER_FULL_CS_PIN		20
+*/
+#define WATER_FULL_SIG_PORT		PORT3
+#define WATER_FULL_SIG_PIN		31
 
+#define FOOD_FULL_SIG_PORT		PORT3
+#define FOOD_FULL_SIG_PIN		30
+
+#define WATER_FULL_INC_PORT		PORT5
+#define WATER_FULL_INC_PIN		0
+#define WATER_FULL_UD_PORT		PORT5
+#define WATER_FULL_UD_PIN		1
+#define WATER_FULL_CS_PORT		PORT5
+#define WATER_FULL_CS_PIN		2
+
+#define FOOD_FULL_INC_PORT		PORT3
+#define FOOD_FULL_INC_PIN		18
+#define FOOD_FULL_UD_PORT		PORT3
+#define FOOD_FULL_UD_PIN		19
+#define FOOD_FULL_CS_PORT		PORT3
+#define FOOD_FULL_CS_PIN		20
 /*==============================================================================
  Types
 ==============================================================================*/

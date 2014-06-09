@@ -33,8 +33,9 @@ enum{
 	DISPENSING_FOOD,	/* CONNECTED state, performing a food dispense command */
 	DISPENSING_WATER,	/* CONNECTED state, performing a water dispense command */
 	CAPTURING,			/* CONNCETED state, performing a picture command */
-	OUTPUTTING,			/* CONNECTED state, outputting audio */
-	TALKING, 			/* CONNCETED state, performing audio command */
+	TALKING1, 			/* CONNCETED state, performing audio command */
+	TALKING2, 			/* CONNCETED state, performing audio command */
+	TALKING3, 			/* CONNCETED state, performing audio command */
 	PAN_LEFT,			/* CONNCETED state, panning camera left */
 	PAN_RIGHT,			/* CONNCETED state, panning camera right */
 	SCHEDULING			/* CONNECTED state, performing schedule change */

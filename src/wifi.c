@@ -145,8 +145,14 @@ void getMessage(char string[]){
 	else if( (strcmp(message, "PICTURE") == 0) && STATE == CONNECTED)
 		STATE = CAPTURING;
 
-	else if( (strcmp(message, "AUDIO") == 0) && STATE == CONNECTED)
-		STATE = TALKING;
+	else if( (strcmp(message, "AUDIO1") == 0) && STATE == CONNECTED)
+		STATE = TALKING1;
+
+	else if( (strcmp(message, "AUDIO2") == 0) && STATE == CONNECTED)
+		STATE = TALKING2;
+
+	else if( (strcmp(message, "AUDIO3") == 0) && STATE == CONNECTED)
+		STATE = TALKING3;
 
 	else if( (strcmp(message, "SCHEDULE") == 0) && STATE == CONNECTED)
 		STATE = SCHEDULING;
